@@ -11,13 +11,10 @@ import java.util.List;
 %public
 %unicode
 %class Lexer
-//%standalone
 %line
 %column
 %type com.example.proyecto1_compi1.models.Token
-
-
-
+%state STRING
 
 %init{
 //constructor
@@ -29,12 +26,10 @@ import java.util.List;
 ESPACIO = [ \t\r\n]+
 ID = [a-zA-Z_][a-zA-Z0-9_]*
 NUMERO = [0-9]+(\.[0-9]+)?
-CADENA = \"([^\"\\]|\\.)*\"
 
 HEX_COLOR = #[0-9a-fA-F]{6}
 RGB_COLOR = \([0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\)
 HSL_COLOR = \<[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\>
-//EMOJI = @\\[:[a-zA-Z0-9()^<3]+:\\]
 
 COMODIN = \?
 
@@ -64,13 +59,30 @@ EMOJI_CAT_TXT = @\[:cat:\]
 
 private List<ErrorLexico> errores = new ArrayList<>();
 
-  public List<ErrorLexico> getErrores() {
-      return errores;
-  }
+public List<ErrorLexico> getErrores() {
+    return errores;
+}
+
+private StringBuilder yyStringBuf = new StringBuilder();
+private int stringStartLine = 0;
+private int stringStartCol = 0;
+private final int MAX_STRING_LENGTH = 2000;
+
+private void appendToStringBuf(String s) {
+    if (yyStringBuf.length() + s.length() > MAX_STRING_LENGTH) {
+        errores.add(new ErrorLexico("Literal demasiado largo", yyline+1, yycolumn+1, "Lexico", "Cadena excede tamaño máximo"));
+    } else {
+        yyStringBuf.append(s);
+    }
+}
+
 %}
 
 %%
-//declaracion de elementos del lenguaje y acciones
+
+/***********************ESTADO INICIAL*****************************/
+
+<YYINITIAL>{
 
 "SECTION"                           {   return new Token("PALABRA RESERVADA", yytext(), yyline+1, yycolumn+1); }
 "TABLE"                             {   return new Token("PALABRA RESERVADA", yytext(), yyline+1, yycolumn+1); }
@@ -82,7 +94,7 @@ private List<ErrorLexico> errores = new ArrayList<>();
 
 "number"                            {   return new Token("PALABRA RESERVADA", yytext(), yyline+1, yycolumn+1); }
 "string"                            {   return new Token("PALABRA RESERVADA", yytext(), yyline+1, yycolumn+1); }
-"special"                           {   return new Token("PALABRA RESERVADA", yytext(), yyline+1, yycolumn+1); }
+"special"                           {   return new Token("TIPO_SPECIAL", yytext(), yyline+1, yycolumn+1); }
 
 "VERTICAL"                          {   return new Token("PALABRA RESERVADA", yytext(), yyline+1, yycolumn+1); }
 "HORIZONTAL"                        {   return new Token("PALABRA RESERVADA", yytext(), yyline+1, yycolumn+1); }
@@ -178,29 +190,24 @@ private List<ErrorLexico> errores = new ArrayList<>();
 {COMODIN}           {   return new Token("COMODIN", yytext(), yyline+1, yycolumn+1); }
 
 /***********************colores*****************************************************/
-{HEX_COLOR} {   return new Token("HEX_COLOR", yytext(), yyline+1, yycolumn+1); }
-{RGB_COLOR} {   return new Token("RGB_COLOR", yytext(), yyline+1, yycolumn+1); }
-{HSL_COLOR} {   return new Token("HSL_COLOR", yytext(), yyline+1, yycolumn+1); }
+{HEX_COLOR} { return new Token("HEX_COLOR", yytext(), yyline+1, yycolumn+1); }
+{RGB_COLOR} { return new Token("RGB_COLOR", yytext(), yyline+1, yycolumn+1); }
+{HSL_COLOR} { return new Token("HSL_COLOR", yytext(), yyline+1, yycolumn+1); }
 
-
-
-
-/***********************emojis***************************************************/
-//{EMOJI}         { printToken("EMOJI");}
-
-{EMOJI_SMILE} | {EMOJI_SMILE_TXT}                           { return new Token("EMOJI_SMILE", yytext(), yyline+1, yycolumn+1); }
-{EMOJI_SAD} | {EMOJI_SAD_TXT}                               { return new Token("EMOJI_SAD", yytext(), yyline+1, yycolumn+1); }
-{EMOJI_SERIOUS} | {EMOJI_SERIOUS_TXT}                       { return new Token("EMOJI_SERIOUS", yytext(), yyline+1, yycolumn+1); }
-{EMOJI_HEART}  |  {EMOJI_HEART_TXT}                         { return new Token("EMOJI_HEART", yytext(), yyline+1, yycolumn+1); }
-{EMOJI_STAR} | {EMOJI_STAR_NUM} | {EMOJI_STAR_NUM_ALT}      { return new Token("EMOJI_STAR", yytext(), yyline+1, yycolumn+1); }
-{EMOJI_CAT} | {EMOJI_CAT_TXT}                               { return new Token("EMOJI_CAT", yytext(), yyline+1, yycolumn+1); }
-/********************************litelares*****************************/
+/***********************numeros********/
 
 {NUMERO}                            {   return new Token("NUMERO", yytext(), yyline+1, yycolumn+1); }
 
-{CADENA}                            {   return new Token("CADENA", yytext(), yyline+1, yycolumn+1); }
+/***********************inicio cadena*****************************************************/
 
-/********************************identificadores********************/
+\" {
+    stringStartLine = yyline + 1;
+    stringStartCol = yycolumn + 1;
+    yyStringBuf.setLength(0);
+    yybegin(STRING);
+}
+
+/***********************identificadores*****************************************************/
 
 {ID}                                {   return new Token("ID", yytext(), yyline+1, yycolumn+1); }
 
@@ -209,9 +216,84 @@ private List<ErrorLexico> errores = new ArrayList<>();
 
 "/*"~"*/"                                { /* comentario multilínea */ }
 
-{ESPACIO}                                {/*ignorar termporalmente*/}
+/***********************espacios*****************************************************/
+
+{ESPACIO} { }
+
+/***********************error*****************************************************/
 
 .                     { errores.add( new ErrorLexico( yytext(), yyline+1, yycolumn+1, "Lexico", "Caracter no reconocido")); }
 
+}
+
+/*************************** ESTADO STRING **************************/
+
+<STRING>{
+
+    \" {
+        String finalLexeme = yyStringBuf.toString();
+        yybegin(YYINITIAL);
+        return new Token("CADENA", finalLexeme, stringStartLine, stringStartCol);
+    }
+
+/*********************emojis*************************/
+
+    {EMOJI_SMILE} | {EMOJI_SMILE_TXT}         { appendToStringBuf("@[:smile:]"); }
+
+    {EMOJI_SAD} | {EMOJI_SAD_TXT}             { appendToStringBuf("@[:sad:]"); }
+
+    {EMOJI_SERIOUS} | {EMOJI_SERIOUS_TXT}     { appendToStringBuf("@[:serious:]"); }
+
+    {EMOJI_HEART} | {EMOJI_HEART_TXT}         { appendToStringBuf("@[:heart:]"); }
+
+    {EMOJI_CAT} | {EMOJI_CAT_TXT}             { appendToStringBuf("@[:cat:]"); }
+
+    {EMOJI_STAR}                              { appendToStringBuf("@[:star:]"); }
+
+    {EMOJI_STAR_NUM} {
+
+        String lex = yytext();
+
+        int num = Integer.parseInt(
+            lex.substring(7, lex.length()-2)
+        );
+
+        for(int i=0;i<num;i++){
+            appendToStringBuf("@[:star:]");
+        }
+    }
+
+    {EMOJI_STAR_NUM_ALT} {
+
+        String lex = yytext(); // @[:star-3]
+
+        int num = Integer.parseInt(
+            lex.substring(7, lex.length()-1)
+        );
+
+        for(int i=0;i<num;i++){
+            appendToStringBuf("@[:star:]");
+        }
+    }
+
+/*********************texto normal *********************/
+
+    [^\"@\n]+                             { appendToStringBuf(yytext()); }
+
+    "@"                                   { appendToStringBuf("@"); }
+
+/*********************errores*************************/
+
+    \n { errores.add(new ErrorLexico( "Nueva linea en literal de cadena", yyline+1, yycolumn+1, "Lexico", "Nueva linea no permitida dentro de cadena" )); }
+
+    .   { appendToStringBuf(yytext()); }
+
+    <<EOF>> {errores.add(new ErrorLexico("EOF dentro de literal de cadena",yyline+1, yycolumn+1,"Lexico","Cadena no cerrada"));
+        yybegin(YYINITIAL);
+        return null;
+    }
+}
+
+/***********************EOF*****************************************************/
 
 <<EOF>>               { return null;}
