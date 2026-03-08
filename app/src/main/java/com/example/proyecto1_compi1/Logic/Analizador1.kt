@@ -1,9 +1,11 @@
 package com.example.proyecto1_compi1.Logic
 
 import com.example.proyecto1_compi1.Analizadores.Lexer
+import com.example.proyecto1_compi1.Analizadores.sym
 import com.example.proyecto1_compi1.models.ErrorLexico
 import com.example.proyecto1_compi1.models.Token
 import java.io.StringReader
+import java_cup.runtime.Symbol
 
 class Analizador1 {
 
@@ -17,10 +19,17 @@ class Analizador1 {
             val lexer = Lexer(StringReader(entrada))
             lexer.errores.clear()
 
-            var token = lexer.yylex()
-            while (token != null) {
+            var symbol: Symbol? = lexer.next_token()
+            while (symbol != null) {
+                if (symbol.sym == sym.EOF) break
+                val token = Token(
+                    lexema = symbol.value?.toString() ?: "",
+                    tipo = sym.terminalNames[symbol.sym],
+                    linea = symbol.left,
+                    columna = symbol.right
+                )
                 tokens.add(token)
-                token = lexer.yylex()
+                symbol = lexer.next_token()
             }
 
             errores.addAll(lexer.errores)

@@ -1,0 +1,93 @@
+package com.example.proyecto1_compi1.Analizadores;
+
+import java_cup.runtime.Symbol;
+
+parser code
+{:
+
+    public void syntax_error(Symbol s) {
+        System.out.println("Error de sintaxis en la linea: " + s.left);
+    }
+
+:};
+
+//terminales
+terminal SECTION;
+terminal TEXT;
+terminal NUMBER_TYPE;
+terminal STRING_TYPE;
+terminal SPECIAL;
+
+terminal OPEN_QUESTION, SELECT_QUESTION, MULTIPLE_QUESTION, DROP_QUESTION;
+
+terminal HORIZONTAL, VERTICAL;
+
+terminal WIDTH, HEIGHT, POINTX, POINTY, ORIENTATION, ELEMENTS, OPTIONS, CORRECT, CONTENT, LABEL;
+
+terminal STYLES, COLOR, BACKGROUND_COLOR, FONT_FAMILY, TEXT_SIZE, BORDER;
+
+terminal HEX_COLOR, RGB_COLOR, HSL_COLOR;
+terminal RED, BLUE, GREEN, YELLOW, BLACK, WHITE, PURPLE, SKY;
+
+terminal SANS_SERIF, MONO, CURSIVE;
+
+terminal LINE;
+terminal TABLE;
+terminal DOTTED, DOUBLE;
+terminal WHILE, FOR, ELSE, IF, DO, IN;
+
+terminal String CADENA;
+terminal Integer NUMERO;
+terminal ID;
+
+terminal SUMA, RESTA, MULTI, DIV, POTENCIA, MOD;
+
+terminal MAYOR, MENOR, MAYOR_IGUAL, MENOR_IGUAL, IGUAL, DIFERENTE;
+
+terminal AND, OR, NOT;
+
+terminal LPAREN;
+terminal RPAREN;
+terminal RCORCHETE;
+terminal LCORCHETE;
+terminal LLLAVE, RLLAVE;
+terminal COMA;
+terminal DOS_PUNTOS;
+terminal PUNTO_COMA;
+terminal PUNTO;
+
+terminal ASIGNACION, RANGO;
+terminal DRAW, POKEMON, COMODIN;
+
+//no terminales
+
+non terminal inicio;
+non terminal formulario;
+non terminal secciones;
+non terminal seccion;
+non terminal preguntas;
+non terminal pregunta;
+non terminal variables;
+non terminal asignacion;
+non terminal expresion_logica;
+non terminal expresion;
+non terminal estilos;
+non terminal color;
+non terminal tabla;
+non terminal texto;
+non terminal bloque_codigo;
+non terminal opciones;
+non terminal emoji;
+
+start with inicio;
+
+
+
+inicio ::= formulario;
+
+formulario ::= secciones;
+
+secciones ::= seccion
+            | secciones seccion
+            ;
+seccion ::= SECTION LCORCHETE RCORCHETE;
