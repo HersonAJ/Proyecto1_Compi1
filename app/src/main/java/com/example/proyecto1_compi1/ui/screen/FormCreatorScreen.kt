@@ -16,7 +16,9 @@ fun FormCreatorScreen(
 ) {
     val codigo by viewModel.codigo.collectAsState()
     val tokens by viewModel.tokens.collectAsState()
-    val errores by viewModel.errores.collectAsState()
+    val erroresLexicos by viewModel.erroresLexicos.collectAsState()
+    val erroresSintacticos by viewModel.erroresSintacticos.collectAsState()
+
     val isAnalizando by viewModel.isAnalizando.collectAsState()
 
     Column(
@@ -35,58 +37,27 @@ fun FormCreatorScreen(
         ) {
             when {
                 tokens.isNotEmpty() -> {
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Tokens (${tokens.size}):",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.Black
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        // Mostrar los primeros 10 tokens para no saturar
-                        tokens.take(10).forEachIndexed { index, token ->
-                            Text(
-                                text = "${index + 1}. ${token.tipo}: \"${token.lexema}\" (Línea ${token.linea})",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Black
-                            )
-                        }
-
-                        if (tokens.size > 10) {
-                            Text(
-                                text = "... y ${tokens.size - 10} más",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
-                            )
-                        }
-                    }
+                    // Mostrar tokens
                 }
-                errores.isNotEmpty() -> {
+                erroresLexicos.isNotEmpty() -> {
                     Column {
-                        Text(
-                            text = "Errores (${errores.size}):",
-                            color = Color.Red,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        errores.take(5).forEach { error ->
-                            Text(
-                                text = "• Línea ${error.linea}: ${error.descripcion} (${error.lexema})",
-                                color = Color.Red,
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                        Text("Errores Léxicos (${erroresLexicos.size}):", color = Color.Red)
+                        erroresLexicos.take(5).forEach { error ->
+                            Text("• Línea ${error.linea}: ${error.descripcion} (${error.lexema})", color = Color.Red)
                         }
                     }
                 }
-                else -> Text(
-                    text = "FORMULARIO",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.Black,
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                erroresSintacticos.isNotEmpty() -> {
+                    Column {
+                        Text("Errores Sintácticos (${erroresSintacticos.size}):", color = Color.Red)
+                        erroresSintacticos.take(5).forEach { error ->
+                            Text("• Línea ${error.linea}: ${error.descripcion}", color = Color.Red)
+                        }
+                    }
+                }
+                else -> Text("FORMULARIO", style = MaterialTheme.typography.headlineMedium)
             }
+
         }
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -145,7 +116,7 @@ fun FormCreatorScreen(
         }
 
         // Errores
-        if (errores.isNotEmpty()) {
+        if (erroresLexicos.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -159,7 +130,7 @@ fun FormCreatorScreen(
                         color = Color.Red,
                         style = MaterialTheme.typography.titleSmall
                     )
-                    errores.take(3).forEach { error ->
+                    erroresLexicos.take(3).forEach { error ->
                         Text(
                             text = "Lexema: ${error.lexema}, Línea ${error.linea}: ${error.descripcion}",
                             color = Color.Red,

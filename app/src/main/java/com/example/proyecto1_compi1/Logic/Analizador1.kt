@@ -1,45 +1,40 @@
 package com.example.proyecto1_compi1.Logic
 
 import com.example.proyecto1_compi1.Analizadores.Lexer
-import com.example.proyecto1_compi1.Analizadores.sym
+import com.example.proyecto1_compi1.Analizadores.Parser
 import com.example.proyecto1_compi1.models.ErrorLexico
+import com.example.proyecto1_compi1.models.ErrorSintactico
 import com.example.proyecto1_compi1.models.Token
 import java.io.StringReader
 import java_cup.runtime.Symbol
 
 class Analizador1 {
 
-    private val errores = mutableListOf<ErrorLexico>()
+    private val erroresLexicos = mutableListOf<ErrorLexico>()
+    private val erroresSintacticos = mutableListOf<ErrorSintactico>()
 
     fun analizar(entrada: String): List<Token> {
         val tokens = mutableListOf<Token>()
-        errores.clear()
+        erroresLexicos.clear()
+        erroresSintacticos.clear()
 
         try {
             val lexer = Lexer(StringReader(entrada))
             lexer.errores.clear()
 
-            var symbol: Symbol? = lexer.next_token()
-            while (symbol != null) {
-                if (symbol.sym == sym.EOF) break
-                val token = Token(
-                    lexema = symbol.value?.toString() ?: "",
-                    tipo = sym.terminalNames[symbol.sym],
-                    linea = symbol.left,
-                    columna = symbol.right
-                )
-                tokens.add(token)
-                symbol = lexer.next_token()
-            }
+            val parser = Parser(lexer)
+            val result: Symbol = parser.parse()
 
-            errores.addAll(lexer.errores)
+            // recolectar errores lexicos
+            erroresLexicos.addAll(lexer.errores)
+
+            // recolectar errores sintacticos
+            erroresSintacticos.addAll(parser.getErroresSintacticos())
         } catch (e: Exception) {
-            errores.add(
-                ErrorLexico(
-                    lexema = "",
+            erroresSintacticos.add(
+                ErrorSintactico(
                     linea = 0,
                     columna = 0,
-                    tipo = "lexico no reconocido",
                     descripcion = "Error inesperado: ${e.message}"
                 )
             )
@@ -47,7 +42,9 @@ class Analizador1 {
         return tokens
     }
 
-    fun getErrores(): List<ErrorLexico> = errores.toList()
+    fun getErroresLexicos(): List<ErrorLexico> = erroresLexicos.toList()
+    fun getErroresSintacticos(): List<ErrorSintactico> = erroresSintacticos.toList()
 
-    fun tieneErrores(): Boolean = errores.isNotEmpty()
+    fun tieneErroresLexicos(): Boolean = erroresLexicos.isNotEmpty()
+    fun tieneErroresSintacticos(): Boolean = erroresSintacticos.isNotEmpty()
 }

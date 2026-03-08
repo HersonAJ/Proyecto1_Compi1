@@ -1,12 +1,23 @@
 package com.example.proyecto1_compi1.Analizadores;
 
 import java_cup.runtime.Symbol;
+import com.example.proyecto1_compi1.models.ErrorSintactico;
+import java.util.*;
 
 parser code
 {:
+private List<ErrorSintactico> erroresSintacticos = new ArrayList<>();
 
     public void syntax_error(Symbol s) {
-        System.out.println("Error de sintaxis en la linea: " + s.left);
+        erroresSintacticos.add(
+        new ErrorSintactico(
+        s.left, s.right, "Error de sintaxis en la linea: " + s.left
+        )
+        );
+    }
+
+    public List<ErrorSintactico> getErroresSintacticos(){
+        return erroresSintacticos;
     }
 
 :};
@@ -60,7 +71,6 @@ terminal ASIGNACION, RANGO;
 terminal DRAW, POKEMON, COMODIN;
 
 //no terminales
-
 non terminal inicio;
 non terminal formulario;
 non terminal secciones;
@@ -71,18 +81,24 @@ non terminal variables;
 non terminal asignacion;
 non terminal expresion_logica;
 non terminal expresion;
-non terminal estilos;
 non terminal color;
 non terminal tabla;
 non terminal texto;
 non terminal bloque_codigo;
 non terminal opciones;
 non terminal emoji;
+non terminal atributo;
+non terminal atributos;
+non terminal orientacion;
+non terminal fuente;
+non terminal lista_atributos;
+non terminal lista_estilos;
+non terminal estilo;
 
 start with inicio;
 
 
-
+//fase inicial del programa
 inicio ::= formulario;
 
 formulario ::= secciones;
@@ -90,4 +106,40 @@ formulario ::= secciones;
 secciones ::= seccion
             | secciones seccion
             ;
-seccion ::= SECTION LCORCHETE RCORCHETE;
+seccion ::= SECTION LCORCHETE lista_atributos RCORCHETE;
+
+lista_atributos ::= atributo
+                  | lista_atributos COMA atributo
+                  ;
+
+atributo ::= WIDTH DOS_PUNTOS NUMERO
+           | HEIGHT DOS_PUNTOS NUMERO
+           | POINTX DOS_PUNTOS NUMERO
+           | POINTY DOS_PUNTOS NUMERO
+           | ORIENTATION DOS_PUNTOS orientacion
+           | STYLES LCORCHETE lista_estilos RCORCHETE
+           ;
+
+orientacion ::= HORIZONTAL
+              | VERTICAL
+              ;
+
+lista_estilos ::= estilo
+                | lista_estilos COMA estilo
+                ;
+
+estilo ::= COLOR DOS_PUNTOS color
+         | FONT_FAMILY DOS_PUNTOS fuente
+         | TEXT_SIZE DOS_PUNTOS NUMERO
+         ;
+
+color ::= HEX_COLOR
+        | RGB_COLOR
+        | HSL_COLOR
+        | RED | BLUE | GREEN | YELLOW | BLACK | WHITE | PURPLE | SKY
+        ;
+
+fuente ::= MONO
+         | SANS_SERIF
+         | CURSIVE
+         ;
