@@ -4,42 +4,41 @@ import com.example.proyecto1_compi1.Analizadores.Lexer
 import com.example.proyecto1_compi1.Analizadores.Parser
 import com.example.proyecto1_compi1.models.ErrorLexico
 import com.example.proyecto1_compi1.models.ErrorSintactico
-import com.example.proyecto1_compi1.models.Token
 import java.io.StringReader
-import java_cup.runtime.Symbol
 
 class Analizador1 {
 
     private val erroresLexicos = mutableListOf<ErrorLexico>()
     private val erroresSintacticos = mutableListOf<ErrorSintactico>()
 
-    fun analizar(entrada: String): List<Token> {
-        val tokens = mutableListOf<Token>()
+    fun analizar(entrada: String) {
         erroresLexicos.clear()
         erroresSintacticos.clear()
 
         try {
             val lexer = Lexer(StringReader(entrada))
-            lexer.errores.clear()
 
+            // recolectar errores lexicos primero
             val parser = Parser(lexer)
-            val result: Symbol = parser.parse()
 
-            // recolectar errores lexicos
-            erroresLexicos.addAll(lexer.errores)
+            parser.parse()
 
-            // recolectar errores sintacticos
+            erroresLexicos.addAll(lexer.getErrores())
             erroresSintacticos.addAll(parser.getErroresSintacticos())
+
         } catch (e: Exception) {
-            erroresSintacticos.add(
-                ErrorSintactico(
-                    linea = 0,
-                    columna = 0,
-                    descripcion = "Error inesperado: ${e.message}"
+            // solo agregar error generico si no hay nada registrado
+            if (erroresLexicos.isEmpty() && erroresSintacticos.isEmpty()) {
+                erroresSintacticos.add(
+                    ErrorSintactico(
+                        lexema = "",
+                        linea = 0,
+                        columna = 0,
+                        descripcion = "Error inesperado: ${e.message}"
+                    )
                 )
-            )
+            }
         }
-        return tokens
     }
 
     fun getErroresLexicos(): List<ErrorLexico> = erroresLexicos.toList()

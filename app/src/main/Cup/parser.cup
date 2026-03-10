@@ -8,13 +8,29 @@ parser code
 {:
 private List<ErrorSintactico> erroresSintacticos = new ArrayList<>();
 
-    public void syntax_error(Symbol s) {
+public void syntax_error(Symbol s) {
+
+    if (s != null) {
         erroresSintacticos.add(
-        new ErrorSintactico(
-        s.left, s.right, "Error de sintaxis en la linea: " + s.left
-        )
+            new ErrorSintactico(
+                String.valueOf(s.value),
+                s.left,
+                s.right,
+                "Error de sintaxis cerca de '" + s.value + "'"
+            )
+        );
+    } else {
+        erroresSintacticos.add(
+            new ErrorSintactico(
+                "",
+                0,
+                0,
+                "Error de sintaxis desconocido"
+            )
         );
     }
+
+}
 
     public List<ErrorSintactico> getErroresSintacticos(){
         return erroresSintacticos;
@@ -99,14 +115,18 @@ start with inicio;
 
 
 //fase inicial del programa
-inicio ::= formulario;
+inicio ::= formulario
+        | error
+        ;
 
 formulario ::= secciones;
 
 secciones ::= seccion
             | secciones seccion
             ;
-seccion ::= SECTION LCORCHETE lista_atributos RCORCHETE;
+seccion ::= SECTION LCORCHETE lista_atributos RCORCHETE
+        | SECTION LCORCHETE error RCORCHETE
+        ;
 
 lista_atributos ::= atributo
                   | lista_atributos COMA atributo

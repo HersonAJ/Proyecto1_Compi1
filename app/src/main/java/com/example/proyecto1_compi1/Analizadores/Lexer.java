@@ -1147,6 +1147,7 @@ private Symbol symbol(int type, Object value) {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1:
             { errores.add( new ErrorLexico( yytext(), yyline+1, yycolumn+1, "Lexico", "Caracter no reconocido"));
+                                    return new Symbol(sym.error, yyline+1, yycolumn+1, yytext());
             }
           // fall through
           case 101: break;
