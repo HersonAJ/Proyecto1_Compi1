@@ -96,7 +96,6 @@ non terminal pregunta;
 non terminal variables;
 non terminal asignacion;
 non terminal expresion_logica;
-non terminal expresion;
 non terminal color;
 non terminal tabla;
 non terminal texto;
@@ -111,11 +110,35 @@ non terminal lista_atributos;
 non terminal lista_estilos;
 non terminal estilo;
 
+
+nonterminal Object expresion;
+nonterminal Object exp_logica;
+nonterminal Object exp_relacional;
+nonterminal Object exp_aritmetica;
+nonterminal Object exp_term;
+nonterminal Object exp_factor;
+nonterminal Object exp_primaria;
+nonterminal Object exp_or;
+nonterminal Object exp_and;
+non terminal Object exp_potencia;
+
+non terminal declaraciones;
+non terminal declaracion;
+non terminal tipo_variable;
+
+non terminal lista_elementos;
+non terminal elemento;
+
+non terminal lista_atributos_texto;
+non terminal atributo_texto;
+
 start with inicio;
 
 
 //fase inicial del programa
-inicio ::= formulario
+inicio ::= declaraciones formulario
+        | formulario
+        | declaraciones
         | error
         ;
 
@@ -138,6 +161,7 @@ atributo ::= WIDTH DOS_PUNTOS NUMERO
            | POINTY DOS_PUNTOS NUMERO
            | ORIENTATION DOS_PUNTOS orientacion
            | STYLES LCORCHETE lista_estilos RCORCHETE
+           | ELEMENTS DOS_PUNTOS LLLAVE lista_elementos RLLAVE
            ;
 
 orientacion ::= HORIZONTAL
@@ -163,3 +187,80 @@ fuente ::= MONO
          | SANS_SERIF
          | CURSIVE
          ;
+expresion ::= exp_or ;
+
+exp_or ::= exp_or OR exp_and
+         | exp_and
+         ;
+
+exp_and ::= exp_and AND exp_relacional
+          | exp_relacional
+          ;
+
+exp_relacional ::= exp_aritmetica MAYOR exp_aritmetica
+                | exp_aritmetica MENOR exp_aritmetica
+                | exp_aritmetica MAYOR_IGUAL exp_aritmetica
+                | exp_aritmetica MENOR_IGUAL exp_aritmetica
+                | exp_aritmetica IGUAL exp_aritmetica
+                | exp_aritmetica DIFERENTE exp_aritmetica
+                | exp_aritmetica
+                ;
+
+exp_aritmetica ::= exp_aritmetica SUMA exp_term
+                | exp_aritmetica RESTA exp_term
+                | exp_term
+                ;
+
+exp_term ::= exp_term MULTI exp_factor
+           | exp_term DIV exp_factor
+           | exp_factor
+           ;
+
+exp_factor ::= RESTA exp_factor
+             | SUMA exp_factor
+             | NOT exp_factor
+             | exp_potencia
+             ;
+
+exp_potencia ::= exp_potencia POTENCIA exp_primaria
+               | exp_potencia MOD exp_primaria
+               | exp_primaria
+               ;
+
+exp_primaria ::= NUMERO
+               | CADENA
+               | ID
+               | LPAREN expresion RPAREN
+               ;
+declaraciones ::= declaracion
+                | declaraciones declaracion
+                ;
+
+declaracion ::= tipo_variable ID
+              | tipo_variable ID ASIGNACION expresion
+              | asignacion
+              ;
+
+tipo_variable ::= NUMBER_TYPE
+                | STRING_TYPE
+                | SPECIAL
+                ;
+
+asignacion ::= ID ASIGNACION expresion ;
+
+lista_elementos ::= elemento
+                  | lista_elementos COMA elemento
+                  ;
+
+elemento ::= texto
+           | pregunta
+           | seccion
+           ;
+
+texto ::= TEXT LCORCHETE lista_atributos_texto RCORCHETE ;
+
+lista_atributos_texto ::= atributo_texto
+                        | lista_atributos_texto COMA atributo_texto
+                        ;
+
+atributo_texto ::= CONTENT DOS_PUNTOS CADENA ;
