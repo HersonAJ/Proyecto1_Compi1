@@ -11,15 +11,22 @@ private List<ErrorSintactico> erroresSintacticos = new ArrayList<>();
 public void syntax_error(Symbol s) {
 
     if (s != null) {
+
+        String lexema = (s.value != null)
+                ? s.value.toString()
+                : sym.terminalNames[s.sym];
+
         erroresSintacticos.add(
             new ErrorSintactico(
-                String.valueOf(s.value),
+                lexema,
                 s.left,
                 s.right,
-                "Error de sintaxis cerca de '" + s.value + "'"
+                "Error de sintaxis cerca de '" + lexema + "'"
             )
         );
+
     } else {
+
         erroresSintacticos.add(
             new ErrorSintactico(
                 "",
@@ -28,8 +35,8 @@ public void syntax_error(Symbol s) {
                 "Error de sintaxis desconocido"
             )
         );
-    }
 
+    }
 }
 
     public List<ErrorSintactico> getErroresSintacticos(){
@@ -132,14 +139,38 @@ non terminal elemento;
 non terminal lista_atributos_texto;
 non terminal atributo_texto;
 
+non terminal lista_atributos_pregunta;
+non terminal atributo_pregunta;
+non terminal lista_opciones;
+
+non terminal sentencia;
+non terminal if_stmt;
+non terminal while_stmt;
+non terminal for_stmt;
+non terminal do_while_stmt;
+
+non terminal lista_atributos_tabla;
+non terminal atributo_tabla;
+non terminal tipo_linea;
+
+non terminal codigo;
+non terminal lista_sentencias;
+
 start with inicio;
 
 
 //fase inicial del programa
-inicio ::= declaraciones formulario
+/*inicio ::= declaraciones formulario //funcional pero voy a sacar el bloque de codigo de las estructuras
         | formulario
         | declaraciones
         | error
+        ;*/
+
+inicio ::= declaraciones formulario codigo
+        | formulario codigo
+        | declaraciones formulario
+        | formulario
+        | codigo
         ;
 
 formulario ::= secciones;
@@ -238,7 +269,6 @@ declaraciones ::= declaracion
 
 declaracion ::= tipo_variable ID
               | tipo_variable ID ASIGNACION expresion
-              | asignacion
               ;
 
 tipo_variable ::= NUMBER_TYPE
@@ -251,10 +281,21 @@ asignacion ::= ID ASIGNACION expresion ;
 lista_elementos ::= elemento
                   | lista_elementos COMA elemento
                   ;
-
+/*
 elemento ::= texto
            | pregunta
            | seccion
+           | if_stmt
+           | while_stmt
+           | for_stmt
+           | do_while_stmt
+           | tabla
+           ;
+*/
+
+elemento ::= texto
+           | pregunta
+           | tabla
            ;
 
 texto ::= TEXT LCORCHETE lista_atributos_texto RCORCHETE ;
@@ -264,3 +305,81 @@ lista_atributos_texto ::= atributo_texto
                         ;
 
 atributo_texto ::= CONTENT DOS_PUNTOS CADENA ;
+
+pregunta ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+           | SELECT_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+           | MULTIPLE_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+           | DROP_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+           ;
+
+lista_atributos_pregunta ::= atributo_pregunta
+                           | lista_atributos_pregunta COMA atributo_pregunta
+                           ;
+
+atributo_pregunta ::= LABEL DOS_PUNTOS CADENA
+                    | OPTIONS DOS_PUNTOS LLLAVE lista_opciones RLLAVE
+                    | CORRECT DOS_PUNTOS expresion
+                    ;
+
+lista_opciones ::= CADENA
+                 | lista_opciones COMA CADENA
+                 ;
+
+//de aqui en adelante puede fallar
+/*bloque_codigo ::= sentencia
+                | bloque_codigo sentencia
+                ;
+*/
+
+bloque_codigo ::= sentencia
+                | bloque_codigo sentencia
+                ;
+/*
+sentencia ::= elemento
+            | asignacion
+            ;*/
+sentencia ::= asignacion
+            | if_stmt
+            | while_stmt
+            | for_stmt
+            | do_while_stmt
+            ;
+
+if_stmt ::= IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE
+          | IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE
+            ELSE LLLAVE bloque_codigo RLLAVE
+          ;
+
+while_stmt ::= WHILE LPAREN expresion RPAREN
+               LLLAVE bloque_codigo RLLAVE
+               ;
+
+for_stmt ::= FOR LPAREN asignacion PUNTO_COMA expresion PUNTO_COMA asignacion RPAREN
+             LLLAVE bloque_codigo RLLAVE
+             ;
+
+do_while_stmt ::= DO LLLAVE bloque_codigo RLLAVE
+                  WHILE LPAREN expresion RPAREN
+                  ;
+
+//tablas tambien pueden fallar
+
+tabla ::= TABLE LCORCHETE lista_atributos_tabla RCORCHETE ;
+
+lista_atributos_tabla ::= atributo_tabla
+                        | lista_atributos_tabla COMA atributo_tabla
+                        ;
+
+
+atributo_tabla ::= WIDTH DOS_PUNTOS NUMERO
+                 | HEIGHT DOS_PUNTOS NUMERO
+                 | POINTX DOS_PUNTOS NUMERO
+                 | POINTY DOS_PUNTOS NUMERO
+                 | LINE DOS_PUNTOS tipo_linea
+                 ;
+
+tipo_linea ::= DOTTED
+             | DOUBLE
+             ;
+
+codigo ::= LLLAVE bloque_codigo RLLAVE ;
