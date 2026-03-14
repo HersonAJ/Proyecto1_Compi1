@@ -1,5 +1,6 @@
 package com.example.proyecto1_compi1.ViewModel
 
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyecto1_compi1.Logic.Analizador1
@@ -13,8 +14,8 @@ import kotlinx.coroutines.launch
 
 class FormularioViewModel: ViewModel() {
 
-    private val _codigo = MutableStateFlow("")
-    val codigo: StateFlow<String> = _codigo.asStateFlow()
+    private val _codigo = MutableStateFlow(TextFieldValue(""))
+    val codigo: StateFlow<TextFieldValue> = _codigo.asStateFlow()
 
     private val _erroresLexicos = MutableStateFlow<List<ErrorLexico>>(emptyList())
     val erroresLexicos: StateFlow<List<ErrorLexico>> = _erroresLexicos.asStateFlow()
@@ -30,7 +31,7 @@ class FormularioViewModel: ViewModel() {
 
     private val analizador = Analizador1()
 
-    fun actualizarCodigo(nuevoCodigo: String) {
+    fun actualizarCodigo(nuevoCodigo: TextFieldValue) {
         _codigo.value = nuevoCodigo
     }
 
@@ -42,7 +43,7 @@ class FormularioViewModel: ViewModel() {
             _erroresSintacticos.value = emptyList()
             _reporteErrores.value = emptyList()
 
-            analizador.analizar(_codigo.value)
+            analizador.analizar(_codigo.value.text)
 
             val lexicos = analizador.getErroresLexicos()
             val sintacticos = analizador.getErroresSintacticos()
