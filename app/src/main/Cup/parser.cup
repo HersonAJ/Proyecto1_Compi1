@@ -106,6 +106,7 @@ non terminal Object exp_primaria;
 non terminal Object exp_or;
 non terminal Object exp_and;
 non terminal Object exp_potencia;
+non terminal Object exp_mod;
 non terminal declaraciones;
 non terminal declaracion;
 non terminal lista_elementos;
@@ -234,10 +235,19 @@ exp_factor ::= RESTA exp_factor
              | exp_potencia
              ;
 
+/*
 exp_potencia ::= exp_potencia POTENCIA exp_primaria
                | exp_potencia MOD exp_primaria
                | exp_primaria
+               ;*/
+
+exp_potencia ::= exp_mod POTENCIA exp_potencia
+               | exp_mod
                ;
+
+exp_mod ::= exp_mod MOD exp_primaria
+          | exp_primaria
+          ;
 
 exp_primaria ::= NUMERO
                | CADENA
