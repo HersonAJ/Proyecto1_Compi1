@@ -51,35 +51,23 @@ terminal TEXT;
 terminal NUMBER_TYPE;
 terminal STRING_TYPE;
 terminal SPECIAL;
-
 terminal OPEN_QUESTION, SELECT_QUESTION, MULTIPLE_QUESTION, DROP_QUESTION;
-
 terminal HORIZONTAL, VERTICAL;
-
 terminal WIDTH, HEIGHT, POINTX, POINTY, ORIENTATION, ELEMENTS, OPTIONS, CORRECT, CONTENT, LABEL;
-
 terminal STYLES, COLOR, BACKGROUND_COLOR, FONT_FAMILY, TEXT_SIZE, BORDER;
-
 terminal HEX_COLOR, RGB_COLOR, HSL_COLOR;
 terminal RED, BLUE, GREEN, YELLOW, BLACK, WHITE, PURPLE, SKY;
-
 terminal SANS_SERIF, MONO, CURSIVE;
-
 terminal LINE;
 terminal TABLE;
 terminal DOTTED, DOUBLE;
 terminal WHILE, FOR, ELSE, IF, DO, IN;
-
 terminal String CADENA;
 terminal Integer NUMERO;
 terminal ID;
-
 terminal SUMA, RESTA, MULTI, DIV, POTENCIA, MOD;
-
 terminal MAYOR, MENOR, MAYOR_IGUAL, MENOR_IGUAL, IGUAL, DIFERENTE;
-
 terminal AND, OR, NOT;
-
 terminal LPAREN;
 terminal RPAREN;
 terminal RCORCHETE;
@@ -89,7 +77,6 @@ terminal COMA;
 terminal DOS_PUNTOS;
 terminal PUNTO_COMA;
 terminal PUNTO;
-
 terminal ASIGNACION, RANGO;
 terminal DRAW, POKEMON, COMODIN;
 
@@ -98,74 +85,63 @@ non terminal inicio;
 non terminal formulario;
 non terminal secciones;
 non terminal seccion;
-non terminal preguntas;
 non terminal pregunta;
-non terminal variables;
 non terminal asignacion;
-non terminal expresion_logica;
 non terminal color;
 non terminal tabla;
 non terminal texto;
 non terminal bloque_codigo;
-non terminal opciones;
-non terminal emoji;
 non terminal atributo;
-non terminal atributos;
 non terminal orientacion;
 non terminal fuente;
 non terminal lista_atributos;
 non terminal lista_estilos;
 non terminal estilo;
-
-
-nonterminal Object expresion;
-nonterminal Object exp_logica;
-nonterminal Object exp_relacional;
-nonterminal Object exp_aritmetica;
-nonterminal Object exp_term;
-nonterminal Object exp_factor;
-nonterminal Object exp_primaria;
-nonterminal Object exp_or;
-nonterminal Object exp_and;
+non terminal Object expresion;
+non terminal Object exp_relacional;
+non terminal Object exp_aritmetica;
+non terminal Object exp_term;
+non terminal Object exp_factor;
+non terminal Object exp_primaria;
+non terminal Object exp_or;
+non terminal Object exp_and;
 non terminal Object exp_potencia;
-
 non terminal declaraciones;
 non terminal declaracion;
-non terminal tipo_variable;
-
 non terminal lista_elementos;
 non terminal elemento;
-
 non terminal lista_atributos_texto;
 non terminal atributo_texto;
-
 non terminal lista_atributos_pregunta;
 non terminal atributo_pregunta;
 non terminal lista_opciones;
-
 non terminal sentencia;
 non terminal if_stmt;
 non terminal while_stmt;
 non terminal for_stmt;
 non terminal do_while_stmt;
-
 non terminal lista_atributos_tabla;
 non terminal atributo_tabla;
 non terminal tipo_linea;
-
 non terminal codigo;
-non terminal lista_sentencias;
+non terminal linea;
+non terminal lista_atributos_linea;
+non terminal atributo_linea;
+non terminal draw_stmt;
+non terminal tipo_borde;
+non terminal pregunta_special;
+non terminal else_parte;
+non terminal lista_filas;
+non terminal fila;
+non terminal lista_celdas;
+non terminal celda;
+non terminal lista_args;
+non terminal lista_correctos;
 
 start with inicio;
 
 
 //fase inicial del programa
-/*inicio ::= declaraciones formulario //funcional pero voy a sacar el bloque de codigo de las estructuras
-        | formulario
-        | declaraciones
-        | error
-        ;*/
-
 inicio ::= declaraciones formulario codigo
         | formulario codigo
         | declaraciones formulario
@@ -186,10 +162,10 @@ lista_atributos ::= atributo
                   | lista_atributos COMA atributo
                   ;
 
-atributo ::= WIDTH DOS_PUNTOS NUMERO
-           | HEIGHT DOS_PUNTOS NUMERO
-           | POINTX DOS_PUNTOS NUMERO
-           | POINTY DOS_PUNTOS NUMERO
+atributo ::= WIDTH DOS_PUNTOS expresion
+           | HEIGHT DOS_PUNTOS expresion
+           | POINTX DOS_PUNTOS expresion
+           | POINTY DOS_PUNTOS expresion
            | ORIENTATION DOS_PUNTOS orientacion
            | STYLES LCORCHETE lista_estilos RCORCHETE
            | ELEMENTS DOS_PUNTOS LLLAVE lista_elementos RLLAVE
@@ -204,9 +180,13 @@ lista_estilos ::= estilo
                 ;
 
 estilo ::= COLOR DOS_PUNTOS color
+         | BACKGROUND_COLOR DOS_PUNTOS color
          | FONT_FAMILY DOS_PUNTOS fuente
-         | TEXT_SIZE DOS_PUNTOS NUMERO
+         | TEXT_SIZE DOS_PUNTOS expresion
+         | BORDER DOS_PUNTOS LPAREN expresion COMA tipo_borde COMA color RPAREN
          ;
+
+tipo_borde ::= LINE | DOTTED | DOUBLE ;
 
 color ::= HEX_COLOR
         | RGB_COLOR
@@ -267,35 +247,23 @@ declaraciones ::= declaracion
                 | declaraciones declaracion
                 ;
 
-declaracion ::= tipo_variable ID
-              | tipo_variable ID ASIGNACION expresion
+declaracion ::= NUMBER_TYPE ID
+              | STRING_TYPE ID
+              | NUMBER_TYPE ID ASIGNACION expresion
+              | STRING_TYPE ID ASIGNACION expresion
+              | SPECIAL ID ASIGNACION pregunta_special
               ;
-
-tipo_variable ::= NUMBER_TYPE
-                | STRING_TYPE
-                | SPECIAL
-                ;
 
 asignacion ::= ID ASIGNACION expresion ;
 
 lista_elementos ::= elemento
                   | lista_elementos COMA elemento
                   ;
-/*
-elemento ::= texto
-           | pregunta
-           | seccion
-           | if_stmt
-           | while_stmt
-           | for_stmt
-           | do_while_stmt
-           | tabla
-           ;
-*/
 
 elemento ::= texto
            | pregunta
            | tabla
+           | linea
            ;
 
 texto ::= TEXT LCORCHETE lista_atributos_texto RCORCHETE ;
@@ -317,38 +285,36 @@ lista_atributos_pregunta ::= atributo_pregunta
                            ;
 
 atributo_pregunta ::= LABEL DOS_PUNTOS CADENA
+                    | WIDTH DOS_PUNTOS expresion
+                    | HEIGHT DOS_PUNTOS expresion
                     | OPTIONS DOS_PUNTOS LLLAVE lista_opciones RLLAVE
                     | CORRECT DOS_PUNTOS expresion
+                    | CORRECT DOS_PUNTOS LLLAVE lista_correctos RLLAVE
+                    | STYLES LCORCHETE lista_estilos RCORCHETE
                     ;
 
 lista_opciones ::= CADENA
                  | lista_opciones COMA CADENA
                  ;
 
-//de aqui en adelante puede fallar
-/*bloque_codigo ::= sentencia
-                | bloque_codigo sentencia
-                ;
-*/
-
 bloque_codigo ::= sentencia
                 | bloque_codigo sentencia
                 ;
-/*
-sentencia ::= elemento
-            | asignacion
-            ;*/
+
 sentencia ::= asignacion
             | if_stmt
             | while_stmt
             | for_stmt
             | do_while_stmt
+            | draw_stmt
             ;
 
-if_stmt ::= IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE
-          | IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE
-            ELSE LLLAVE bloque_codigo RLLAVE
-          ;
+else_parte ::= /* vacío */
+             | ELSE LLLAVE bloque_codigo RLLAVE
+             | ELSE IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE else_parte
+             ;
+
+if_stmt ::= IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE else_parte ;
 
 while_stmt ::= WHILE LPAREN expresion RPAREN
                LLLAVE bloque_codigo RLLAVE
@@ -356,6 +322,8 @@ while_stmt ::= WHILE LPAREN expresion RPAREN
 
 for_stmt ::= FOR LPAREN asignacion PUNTO_COMA expresion PUNTO_COMA asignacion RPAREN
              LLLAVE bloque_codigo RLLAVE
+             | FOR LPAREN ID IN expresion RANGO expresion RPAREN
+               LLLAVE bloque_codigo RLLAVE
              ;
 
 do_while_stmt ::= DO LLLAVE bloque_codigo RLLAVE
@@ -370,16 +338,56 @@ lista_atributos_tabla ::= atributo_tabla
                         | lista_atributos_tabla COMA atributo_tabla
                         ;
 
-
-atributo_tabla ::= WIDTH DOS_PUNTOS NUMERO
-                 | HEIGHT DOS_PUNTOS NUMERO
-                 | POINTX DOS_PUNTOS NUMERO
-                 | POINTY DOS_PUNTOS NUMERO
-                 | LINE DOS_PUNTOS tipo_linea
+atributo_tabla ::= WIDTH DOS_PUNTOS expresion
+                 | HEIGHT DOS_PUNTOS expresion
+                 | POINTX DOS_PUNTOS expresion
+                 | POINTY DOS_PUNTOS expresion
+                 | ELEMENTS DOS_PUNTOS LLLAVE lista_filas RLLAVE
+                 | STYLES LCORCHETE lista_estilos RCORCHETE
                  ;
+lista_filas ::= fila
+              | lista_filas COMA fila
+              ;
+
+fila ::= LCORCHETE lista_celdas RCORCHETE ;
+
+lista_celdas ::= celda
+               | lista_celdas COMA celda
+               ;
+
+celda ::= LLLAVE elemento RLLAVE ;
 
 tipo_linea ::= DOTTED
              | DOUBLE
              ;
 
 codigo ::= LLLAVE bloque_codigo RLLAVE ;
+
+linea ::= LINE LCORCHETE lista_atributos_linea RCORCHETE;
+
+lista_atributos_linea ::= atributo_linea
+                        | lista_atributos_linea COMA atributo_linea
+                        ;
+
+atributo_linea ::= WIDTH DOS_PUNTOS NUMERO
+                | POINTX DOS_PUNTOS NUMERO
+                | POINTY DOS_PUNTOS NUMERO
+                | LINE DOS_PUNTOS tipo_linea
+                ;
+
+lista_args ::= /* vacío */
+             | expresion
+             | lista_args COMA expresion
+             ;
+
+draw_stmt ::= ID PUNTO DRAW LPAREN lista_args RPAREN ;
+
+lista_correctos ::= expresion
+                  | lista_correctos COMA expresion
+                  ;
+
+pregunta_special ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+                   | DROP_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+                   | SELECT_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+                   | MULTIPLE_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+                   ;
