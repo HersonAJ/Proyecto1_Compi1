@@ -191,6 +191,7 @@ tipo_borde ::= LINE | DOTTED | DOUBLE ;
 color ::= HEX_COLOR
         | RGB_COLOR
         | HSL_COLOR
+        | LPAREN expresion COMA expresion COMA expresion RPAREN
         | RED | BLUE | GREEN | YELLOW | BLACK | WHITE | PURPLE | SKY
         ;
 
@@ -242,6 +243,7 @@ exp_primaria ::= NUMERO
                | CADENA
                | ID
                | LPAREN expresion RPAREN
+               | COMODIN
                ;
 declaraciones ::= declaracion
                 | declaraciones declaracion
@@ -288,6 +290,7 @@ atributo_pregunta ::= LABEL DOS_PUNTOS CADENA
                     | WIDTH DOS_PUNTOS expresion
                     | HEIGHT DOS_PUNTOS expresion
                     | OPTIONS DOS_PUNTOS LLLAVE lista_opciones RLLAVE
+                    | OPTIONS DOS_PUNTOS POKEMON LPAREN NUMBER_TYPE COMA expresion COMA expresion RPAREN
                     | CORRECT DOS_PUNTOS expresion
                     | CORRECT DOS_PUNTOS LLLAVE lista_correctos RLLAVE
                     | STYLES LCORCHETE lista_estilos RCORCHETE

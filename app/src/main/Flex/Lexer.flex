@@ -29,8 +29,7 @@ ID = [a-zA-Z_][a-zA-Z0-9_]*
 NUMERO = [0-9]+(\.[0-9]+)?
 
 HEX_COLOR = #[0-9a-fA-F]{6}
-RGB_COLOR = \([0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\)
-HSL_COLOR = \<[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\>
+HSL_COLOR = \<[ \t]*[0-9]{1,3}[ \t]*,[ \t]*[0-9]{1,3}[ \t]*,[ \t]*[0-9]{1,3}[ \t]*\>
 
 COMODIN = \?
 
@@ -109,8 +108,6 @@ private Symbol symbol(int type, Object value) {
 "HORIZONTAL"                        {   return symbol(sym.HORIZONTAL); }
 
 "styles"                            {   return symbol(sym.STYLES); }
-"color"                             {   return symbol(sym.COLOR); }
-"border"                            {   return symbol(sym.BORDER); }
 
 "MONO"                              {   return symbol(sym.MONO); }
 "SANS_SERIF"                        {   return symbol(sym.SANS_SERIF); }
@@ -139,9 +136,11 @@ private Symbol symbol(int type, Object value) {
 "label"                             {   return symbol(sym.LABEL); }
 
 
-"background color"                  {   return symbol(sym.BACKGROUND_COLOR); }
-"font family"                       {   return symbol(sym.FONT_FAMILY); }
-"text size"                         {   return symbol(sym.TEXT_SIZE); }
+"\"background color\""              { return symbol(sym.BACKGROUND_COLOR); }
+"\"font family\""                   { return symbol(sym.FONT_FAMILY); }
+"\"text size\""                     { return symbol(sym.TEXT_SIZE); }
+"\"color\""                         { return symbol(sym.COLOR); }
+"\"border\""                        { return symbol(sym.BORDER); }
 
 "LINE"                              {   return symbol(sym.LINE); }
 "DOTTED"                            {   return symbol(sym.DOTTED); }
@@ -200,7 +199,6 @@ private Symbol symbol(int type, Object value) {
 
 /***********************colores*****************************************************/
 {HEX_COLOR}                         {   return symbol(sym.HEX_COLOR, yytext()); }
-{RGB_COLOR}                         {   return symbol(sym.RGB_COLOR, yytext()); }
 {HSL_COLOR}                         {   return symbol(sym.HSL_COLOR, yytext()); }
 
 /***********************numeros********/
