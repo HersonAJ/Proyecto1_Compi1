@@ -9,34 +9,50 @@ parser code
 private List<ErrorSintactico> erroresSintacticos = new ArrayList<>();
 
 public void syntax_error(Symbol s) {
+    String lexema = (s != null && s.value != null)
+            ? s.value.toString()
+            : (s != null ? symbl_name_from_id(s.sym) : "desconocido");
 
-    if (s != null) {
+    int linea   = (s != null) ? s.left  : 0;
+    int columna = (s != null) ? s.right : 0;
 
-        String lexema = (s.value != null)
-                ? s.value.toString()
-                : sym.terminalNames[s.sym];
+    StringBuilder descripcion = new StringBuilder();
+    descripcion.append("Se encontró '").append(lexema).append("'. ");
 
-        erroresSintacticos.add(
-            new ErrorSintactico(
-                lexema,
-                s.left,
-                s.right,
-                "Error de sintaxis cerca de '" + lexema + "'"
-            )
-        );
-
+    if (expected_token_ids().isEmpty()) {
+        descripcion.append("No se esperaba ningún símbolo.");
     } else {
-
-        erroresSintacticos.add(
-            new ErrorSintactico(
-                "",
-                0,
-                0,
-                "Error de sintaxis desconocido"
-            )
-        );
-
+        descripcion.append("Se esperaba: ");
+        for (Integer id : expected_token_ids()) {
+            String nombre = symbl_name_from_id(id);
+            if (!nombre.equals("error")) {
+                descripcion.append(nombre).append(", ");
+            }
+        }
+        if (descripcion.toString().endsWith(", ")) {
+            descripcion.setLength(descripcion.length() - 2);
+        }
     }
+
+    erroresSintacticos.add(new ErrorSintactico(
+        lexema,
+        linea,
+        columna,
+        descripcion.toString()
+    ));
+}
+
+public void unrecovered_syntax_error(Symbol s) {
+    String lexema = (s != null && s.value != null)
+            ? s.value.toString()
+            : (s != null ? symbl_name_from_id(s.sym) : "EOF");
+
+    erroresSintacticos.add(new ErrorSintactico(
+        lexema,
+        s != null ? s.left  : 0,
+        s != null ? s.right : 0,
+        "Error irrecuperable cerca de '" + lexema + "'"
+    ));
 }
 
     public List<ErrorSintactico> getErroresSintacticos(){
@@ -124,7 +140,7 @@ non terminal do_while_stmt;
 non terminal lista_atributos_tabla;
 non terminal atributo_tabla;
 non terminal tipo_linea;
-non terminal codigo;
+//non terminal codigo;
 non terminal linea;
 non terminal lista_atributos_linea;
 non terminal atributo_linea;
@@ -143,11 +159,20 @@ start with inicio;
 
 
 //fase inicial del programa
+/*
 inicio ::= declaraciones formulario codigo
         | formulario codigo
         | declaraciones formulario
         | formulario
         | codigo
+        ;*/
+inicio ::= declaraciones formulario bloque_codigo
+        | formulario bloque_codigo
+        | declaraciones formulario
+        | declaraciones bloque_codigo
+        | formulario
+        | bloque_codigo
+        | declaraciones
         ;
 
 formulario ::= secciones;
@@ -257,6 +282,8 @@ exp_primaria ::= NUMERO
                ;
 declaraciones ::= declaracion
                 | declaraciones declaracion
+                | error declaracion
+                | declaraciones error declaracion
                 ;
 
 declaracion ::= NUMBER_TYPE ID
@@ -270,6 +297,8 @@ asignacion ::= ID ASIGNACION expresion ;
 
 lista_elementos ::= elemento
                   | lista_elementos COMA elemento
+                  | lista_elementos COMA error
+                  | error
                   ;
 
 elemento ::= texto
@@ -278,7 +307,9 @@ elemento ::= texto
            | linea
            ;
 
-texto ::= TEXT LCORCHETE lista_atributos_texto RCORCHETE ;
+texto ::= TEXT LCORCHETE lista_atributos_texto RCORCHETE
+        | TEXT LCORCHETE error RCORCHETE
+        ;
 
 lista_atributos_texto ::= atributo_texto
                         | lista_atributos_texto COMA atributo_texto
@@ -287,9 +318,13 @@ lista_atributos_texto ::= atributo_texto
 atributo_texto ::= CONTENT DOS_PUNTOS CADENA ;
 
 pregunta ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+           | OPEN_QUESTION LCORCHETE error RCORCHETE
            | SELECT_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+           | SELECT_QUESTION LCORCHETE error RCORCHETE
            | MULTIPLE_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+           | MULTIPLE_QUESTION LCORCHETE error RCORCHETE
            | DROP_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+           | DROP_QUESTION LCORCHETE error RCORCHETE
            ;
 
 lista_atributos_pregunta ::= atributo_pregunta
@@ -312,6 +347,8 @@ lista_opciones ::= CADENA
 
 bloque_codigo ::= sentencia
                 | bloque_codigo sentencia
+                | error sentencia
+                | bloque_codigo error sentencia
                 ;
 
 sentencia ::= asignacion
@@ -327,25 +364,32 @@ else_parte ::= /* vacío */
              | ELSE IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE else_parte
              ;
 
-if_stmt ::= IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE else_parte ;
+if_stmt ::= IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE else_parte
+           | IF LPAREN error RPAREN LLLAVE bloque_codigo RLLAVE else_parte
+           | IF LPAREN expresion RPAREN LLLAVE error RLLAVE
+           ;
 
-while_stmt ::= WHILE LPAREN expresion RPAREN
-               LLLAVE bloque_codigo RLLAVE
-               ;
-
-for_stmt ::= FOR LPAREN asignacion PUNTO_COMA expresion PUNTO_COMA asignacion RPAREN
-             LLLAVE bloque_codigo RLLAVE
-             | FOR LPAREN ID IN expresion RANGO expresion RPAREN
-               LLLAVE bloque_codigo RLLAVE
+while_stmt ::= WHILE LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE
+             | WHILE LPAREN error RPAREN LLLAVE bloque_codigo RLLAVE
+             | WHILE LPAREN expresion RPAREN LLLAVE error RLLAVE
              ;
 
-do_while_stmt ::= DO LLLAVE bloque_codigo RLLAVE
-                  WHILE LPAREN expresion RPAREN
-                  ;
+
+for_stmt ::= FOR LPAREN asignacion PUNTO_COMA expresion PUNTO_COMA asignacion RPAREN LLLAVE bloque_codigo RLLAVE
+           | FOR LPAREN ID IN expresion RANGO expresion RPAREN LLLAVE bloque_codigo RLLAVE
+           | FOR LPAREN error RPAREN LLLAVE bloque_codigo RLLAVE
+           | FOR LPAREN error RPAREN LLLAVE error RLLAVE
+           ;
+
+do_while_stmt ::= DO LLLAVE bloque_codigo RLLAVE WHILE LPAREN expresion RPAREN
+                | DO LLLAVE error RLLAVE WHILE LPAREN expresion RPAREN
+                ;
 
 //tablas tambien pueden fallar
 
-tabla ::= TABLE LCORCHETE lista_atributos_tabla RCORCHETE ;
+tabla ::= TABLE LCORCHETE lista_atributos_tabla RCORCHETE
+        | TABLE LCORCHETE error RCORCHETE
+        ;
 
 lista_atributos_tabla ::= atributo_tabla
                         | lista_atributos_tabla COMA atributo_tabla
@@ -373,9 +417,11 @@ celda ::= LLLAVE elemento RLLAVE ;
 tipo_linea ::= DOTTED
              | DOUBLE
              ;
-
-codigo ::= LLLAVE bloque_codigo RLLAVE ;
-
+/*
+codigo ::= LLLAVE bloque_codigo RLLAVE
+         | LLLAVE error RLLAVE
+         ;
+*/
 linea ::= LINE LCORCHETE lista_atributos_linea RCORCHETE;
 
 lista_atributos_linea ::= atributo_linea
@@ -400,7 +446,11 @@ lista_correctos ::= expresion
                   ;
 
 pregunta_special ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+                   | OPEN_QUESTION LCORCHETE error RCORCHETE
                    | DROP_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+                   | DROP_QUESTION LCORCHETE error RCORCHETE
                    | SELECT_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+                   | SELECT_QUESTION LCORCHETE error RCORCHETE
                    | MULTIPLE_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
+                   | MULTIPLE_QUESTION LCORCHETE error RCORCHETE
                    ;

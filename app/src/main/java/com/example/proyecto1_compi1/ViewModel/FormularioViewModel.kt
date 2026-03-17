@@ -35,7 +35,7 @@ class FormularioViewModel: ViewModel() {
         _codigo.value = nuevoCodigo
     }
 
-    fun analizarLexicamente() {
+    fun analizarCodigo() {
         viewModelScope.launch {
 
             _isAnalizando.value = true
@@ -43,10 +43,10 @@ class FormularioViewModel: ViewModel() {
             _erroresSintacticos.value = emptyList()
             _reporteErrores.value = emptyList()
 
-            analizador.analizar(_codigo.value.text)
-
-            val lexicos = analizador.getErroresLexicos()
-            val sintacticos = analizador.getErroresSintacticos()
+            val (lexicos, sintacticos) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                analizador.analizar(_codigo.value.text)
+                Pair(analizador.getErroresLexicos(), analizador.getErroresSintacticos())
+            }
 
             _erroresLexicos.value = lexicos
             _erroresSintacticos.value = sintacticos

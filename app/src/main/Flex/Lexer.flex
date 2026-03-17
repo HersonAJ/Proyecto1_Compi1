@@ -229,8 +229,7 @@ private Symbol symbol(int type, Object value) {
 
 /***********************error*****************************************************/
 
-.                     { errores.add( new ErrorLexico( yytext(), yyline+1, yycolumn+1, "Lexico", "Caracter no reconocido"));
-                                    return new Symbol(sym.error, yyline+1, yycolumn+1, yytext()); }
+.                     { errores.add( new ErrorLexico( yytext(), yyline+1, yycolumn+1, "Lexico", "Caracter no reconocido")); }
 
 }
 

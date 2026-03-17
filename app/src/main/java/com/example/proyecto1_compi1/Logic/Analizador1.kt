@@ -15,19 +15,16 @@ class Analizador1 {
         erroresLexicos.clear()
         erroresSintacticos.clear()
 
+        var lexer: Lexer? = null
+        var parser: Parser? = null
+
         try {
-            val lexer = Lexer(StringReader(entrada))
-
-            // recolectar errores lexicos primero
-            val parser = Parser(lexer)
-
+            lexer = Lexer(StringReader(entrada))
+            @Suppress("DEPRECATION")
+            parser = Parser(lexer)
             parser.parse()
 
-            erroresLexicos.addAll(lexer.getErrores())
-            erroresSintacticos.addAll(parser.getErroresSintacticos())
-
         } catch (e: Exception) {
-            // solo agregar error generico si no hay nada registrado
             if (erroresLexicos.isEmpty() && erroresSintacticos.isEmpty()) {
                 erroresSintacticos.add(
                     ErrorSintactico(
@@ -38,9 +35,11 @@ class Analizador1 {
                     )
                 )
             }
+        } finally {
+            lexer?.let { erroresLexicos.addAll(it.getErrores()) }
+            parser?.let { erroresSintacticos.addAll(it.getErroresSintacticos()) }
         }
     }
-
     fun getErroresLexicos(): List<ErrorLexico> = erroresLexicos.toList()
     fun getErroresSintacticos(): List<ErrorSintactico> = erroresSintacticos.toList()
 

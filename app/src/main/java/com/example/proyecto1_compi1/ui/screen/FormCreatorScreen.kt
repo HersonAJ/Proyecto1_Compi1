@@ -106,7 +106,7 @@ fun FormCreatorScreen(
                 // Analizar
                 NavigationBarItem(
                     selected = false,
-                    onClick = { viewModel.analizarLexicamente() },
+                    onClick = { viewModel.analizarCodigo() },
                     icon = {
                         if (isAnalizando) {
                             CircularProgressIndicator(
