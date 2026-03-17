@@ -101,6 +101,7 @@ private Symbol symbol(int type, Object value) {
 "MULTIPLE_QUESTION"                 {   return symbol(sym.MULTIPLE_QUESTION); }
 
 "number"                            {   return symbol(sym.NUMBER_TYPE); }
+"NUMBER"                            {   return symbol(sym.NUMBER_PK); }
 "string"                            {   return symbol(sym.STRING_TYPE); }
 "special"                           {   return symbol(sym.SPECIAL); }
 

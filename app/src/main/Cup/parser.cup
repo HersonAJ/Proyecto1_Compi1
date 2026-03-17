@@ -64,7 +64,7 @@ public void unrecovered_syntax_error(Symbol s) {
 //terminales
 terminal SECTION;
 terminal TEXT;
-terminal NUMBER_TYPE;
+terminal NUMBER_TYPE, NUMBER_PK;
 terminal STRING_TYPE;
 terminal SPECIAL;
 terminal OPEN_QUESTION, SELECT_QUESTION, MULTIPLE_QUESTION, DROP_QUESTION;
@@ -335,7 +335,7 @@ atributo_pregunta ::= LABEL DOS_PUNTOS CADENA
                     | WIDTH DOS_PUNTOS expresion
                     | HEIGHT DOS_PUNTOS expresion
                     | OPTIONS DOS_PUNTOS LLLAVE lista_opciones RLLAVE
-                    | OPTIONS DOS_PUNTOS POKEMON LPAREN NUMBER_TYPE COMA expresion COMA expresion RPAREN
+                    | OPTIONS DOS_PUNTOS POKEMON LPAREN NUMBER_PK COMA expresion COMA expresion RPAREN
                     | CORRECT DOS_PUNTOS expresion
                     | CORRECT DOS_PUNTOS LLLAVE lista_correctos RLLAVE
                     | STYLES LCORCHETE lista_estilos RCORCHETE
