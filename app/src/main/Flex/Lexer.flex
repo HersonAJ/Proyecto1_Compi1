@@ -204,7 +204,7 @@ private Symbol symbol(int type, Object value) {
 
 /***********************numeros********/
 
-{NUMERO}                            {   return symbol(sym.NUMERO); }
+{NUMERO}                            {   return symbol(sym.NUMERO, yytext()); }
 
 /***********************inicio cadena*****************************************************/
 

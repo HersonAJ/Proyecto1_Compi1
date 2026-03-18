@@ -3,6 +3,7 @@ package com.example.proyecto1_compi1.Analizadores;
 import java_cup.runtime.Symbol;
 import com.example.proyecto1_compi1.models.ErrorSintactico;
 import java.util.*;
+import com.example.proyecto1_compi1.models.nodos.*;
 
 parser code
 {:
@@ -79,7 +80,7 @@ terminal TABLE;
 terminal DOTTED, DOUBLE;
 terminal WHILE, FOR, ELSE, IF, DO, IN;
 terminal String CADENA;
-terminal Integer NUMERO;
+terminal String NUMERO;
 terminal ID;
 terminal SUMA, RESTA, MULTI, DIV, POTENCIA, MOD;
 terminal MAYOR, MENOR, MAYOR_IGUAL, MENOR_IGUAL, IGUAL, DIFERENTE;
@@ -113,16 +114,18 @@ non terminal fuente;
 non terminal lista_atributos;
 non terminal lista_estilos;
 non terminal estilo;
-non terminal Object expresion;
-non terminal Object exp_relacional;
-non terminal Object exp_aritmetica;
-non terminal Object exp_term;
-non terminal Object exp_factor;
-non terminal Object exp_primaria;
-non terminal Object exp_or;
-non terminal Object exp_and;
-non terminal Object exp_potencia;
-non terminal Object exp_mod;
+
+non terminal NodoExpresion expresion;
+non terminal NodoExpresion exp_relacional;
+non terminal NodoExpresion exp_aritmetica;
+non terminal NodoExpresion exp_term;
+non terminal NodoExpresion exp_factor;
+non terminal NodoExpresion exp_or;
+non terminal NodoExpresion exp_and;
+non terminal NodoExpresion exp_potencia;
+non terminal NodoExpresion exp_mod;
+non terminal NodoExpresion exp_primaria;
+
 non terminal declaraciones;
 non terminal declaracion;
 non terminal lista_elementos;
@@ -225,39 +228,65 @@ fuente ::= MONO
          | SANS_SERIF
          | CURSIVE
          ;
-expresion ::= exp_or ;
+expresion ::= exp_or:e
+              {:
+                 RESULT = e;
+                 System.out.println("AST Expresion: " + e);
+              :}
+              ;
 
-exp_or ::= exp_or OR exp_and
-         | exp_and
+exp_or ::= exp_or:izq OR exp_and:der
+           {: RESULT = new NodoOperacionBinaria(izq, "||", der); :}
+         | exp_and:e
+           {: RESULT = e; :}
          ;
 
-exp_and ::= exp_and AND exp_relacional
-          | exp_relacional
+exp_and ::= exp_and:izq AND exp_relacional:der
+            {: RESULT = new NodoOperacionBinaria(izq, "&&", der); :}
+          | exp_relacional:e
+            {: RESULT = e; :}
           ;
 
-exp_relacional ::= exp_aritmetica MAYOR exp_aritmetica
-                | exp_aritmetica MENOR exp_aritmetica
-                | exp_aritmetica MAYOR_IGUAL exp_aritmetica
-                | exp_aritmetica MENOR_IGUAL exp_aritmetica
-                | exp_aritmetica IGUAL exp_aritmetica
-                | exp_aritmetica DIFERENTE exp_aritmetica
-                | exp_aritmetica
-                ;
+exp_relacional ::= exp_aritmetica:izq MAYOR exp_aritmetica:der
+                   {: RESULT = new NodoOperacionBinaria(izq, ">", der); :}
+                 | exp_aritmetica:izq MENOR exp_aritmetica:der
+                   {: RESULT = new NodoOperacionBinaria(izq, "<", der); :}
+                 | exp_aritmetica:izq MAYOR_IGUAL exp_aritmetica:der
+                   {: RESULT = new NodoOperacionBinaria(izq, ">=", der); :}
+                 | exp_aritmetica:izq MENOR_IGUAL exp_aritmetica:der
+                   {: RESULT = new NodoOperacionBinaria(izq, "<=", der); :}
+                 | exp_aritmetica:izq IGUAL exp_aritmetica:der
+                   {: RESULT = new NodoOperacionBinaria(izq, "==", der); :}
+                 | exp_aritmetica:izq DIFERENTE exp_aritmetica:der
+                   {: RESULT = new NodoOperacionBinaria(izq, "!!", der); :}
+                 | exp_aritmetica:e
+                   {: RESULT = e; :}
+                 ;
 
-exp_aritmetica ::= exp_aritmetica SUMA exp_term
-                | exp_aritmetica RESTA exp_term
-                | exp_term
-                ;
+exp_aritmetica ::= exp_aritmetica:izq SUMA exp_term:der
+                   {: RESULT = new NodoOperacionBinaria(izq, "+", der); :}
+                 | exp_aritmetica:izq RESTA exp_term:der
+                   {: RESULT = new NodoOperacionBinaria(izq, "-", der); :}
+                 | exp_term:e
+                   {: RESULT = e; :}
+                 ;
 
-exp_term ::= exp_term MULTI exp_factor
-           | exp_term DIV exp_factor
-           | exp_factor
+exp_term ::= exp_term:izq MULTI exp_factor:der
+             {: RESULT = new NodoOperacionBinaria(izq, "*", der); :}
+           | exp_term:izq DIV exp_factor:der
+             {: RESULT = new NodoOperacionBinaria(izq, "/", der); :}
+           | exp_factor:e
+             {: RESULT = e; :}
            ;
 
-exp_factor ::= RESTA exp_factor
-             | SUMA exp_factor
-             | NOT exp_factor
-             | exp_potencia
+exp_factor ::= RESTA exp_factor:e
+               {: RESULT = new NodoOperacionUnaria("-", e); :}
+             | SUMA exp_factor:e
+               {: RESULT = new NodoOperacionUnaria("+", e); :}
+             | NOT exp_factor:e
+               {: RESULT = new NodoOperacionUnaria("~", e); :}
+             | exp_potencia:e
+               {: RESULT = e; :}
              ;
 
 /*
@@ -266,19 +295,28 @@ exp_potencia ::= exp_potencia POTENCIA exp_primaria
                | exp_primaria
                ;*/
 
-exp_potencia ::= exp_mod POTENCIA exp_potencia
-               | exp_mod
+exp_potencia ::= exp_mod:izq POTENCIA exp_potencia:der
+                 {: RESULT = new NodoOperacionBinaria(izq, "^", der); :}
+               | exp_mod:e
+                 {: RESULT = e; :}
                ;
 
-exp_mod ::= exp_mod MOD exp_primaria
-          | exp_primaria
+exp_mod ::= exp_mod:izq MOD exp_primaria:der
+            {:  RESULT = new NodoOperacionBinaria(izq, "%", der); :}
+          | exp_primaria:e
+            {:  RESULT = e; :}
           ;
 
-exp_primaria ::= NUMERO
-               | CADENA
-               | ID
-               | LPAREN expresion RPAREN
+exp_primaria ::= NUMERO:n
+                {:  RESULT = new NodoNumero(Double.parseDouble(n.toString())); :}
+               | CADENA:s
+               {:   RESULT = new NodoCadena(s); :}
+               | ID:id
+               {:   RESULT = new NodoIdentificador(id.toString()); :}
+               | LPAREN expresion:e RPAREN
+               {:   RESULT = e; :}
                | COMODIN
+               {:   RESULT = NodoComodin.INSTANCE; :}
                ;
 declaraciones ::= declaracion
                 | declaraciones declaracion
