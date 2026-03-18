@@ -4,6 +4,7 @@ import java_cup.runtime.Symbol;
 import com.example.proyecto1_compi1.models.ErrorSintactico;
 import java.util.*;
 import com.example.proyecto1_compi1.models.nodos.*;
+import com.example.proyecto1_compi1.models.*;
 
 parser code
 {:
@@ -60,6 +61,17 @@ public void unrecovered_syntax_error(Symbol s) {
         return erroresSintacticos;
     }
 
+    private NodoEstilos buildEstilos(Atributos attrs) {
+        if (attrs == null) return null;
+        return new NodoEstilos(
+            attrs.getColor("color"),
+            attrs.getColor("backgroundColor"),
+            attrs.getString("fontFamily"),
+            attrs.getExpresion("textSize"),
+            (NodoBorde) attrs.get("border")
+        );
+    }
+
 :};
 
 //terminales
@@ -98,21 +110,14 @@ terminal ASIGNACION, RANGO;
 terminal DRAW, POKEMON, COMODIN;
 
 //no terminales
-non terminal inicio;
-non terminal formulario;
-non terminal secciones;
-non terminal seccion;
-non terminal pregunta;
-non terminal color;
-non terminal tabla;
-non terminal texto;
-non terminal atributo;
-non terminal orientacion;
-non terminal fuente;
-non terminal lista_atributos;
-non terminal lista_estilos;
-non terminal estilo;
 
+//programa
+non terminal NodoPrograma inicio;
+non terminal java.util.List formulario;
+non terminal java.util.List secciones;
+non terminal java.util.List declaraciones;
+
+//expresiones
 non terminal NodoExpresion expresion;
 non terminal NodoExpresion exp_relacional;
 non terminal NodoExpresion exp_aritmetica;
@@ -124,8 +129,7 @@ non terminal NodoExpresion exp_potencia;
 non terminal NodoExpresion exp_mod;
 non terminal NodoExpresion exp_primaria;
 
-non terminal declaraciones;
-
+//instrucciones
 non terminal NodoInstruccion declaracion;
 non terminal NodoAsignacion asignacion;
 non terminal NodoInstruccion sentencia;
@@ -138,104 +142,172 @@ non terminal NodoInstruccion else_parte;
 non terminal java.util.List bloque_codigo;
 non terminal java.util.List lista_args;
 
-non terminal lista_elementos;
-non terminal elemento;
-non terminal lista_atributos_texto;
-non terminal atributo_texto;
-non terminal lista_atributos_pregunta;
-non terminal atributo_pregunta;
-non terminal lista_opciones;
+//elementos con atributos
+non terminal NodoElemento seccion;
+non terminal NodoElemento tabla;
+non terminal NodoElemento texto;
+non terminal NodoElemento pregunta;
+non terminal NodoElemento pregunta_special;
+non terminal NodoElemento elemento;
+non terminal NodoElemento celda;
 
-non terminal lista_atributos_tabla;
-non terminal atributo_tabla;
-non terminal tipo_linea;
-//non terminal codigo;
+//atributos
+non terminal Atributos atributo;
+non terminal Atributos lista_atributos;
+non terminal Atributos estilo;
+non terminal Atributos lista_estilos;
+non terminal Atributos atributo_texto;
+non terminal Atributos lista_atributos_texto;
+non terminal Atributos atributo_pregunta;
+non terminal Atributos lista_atributos_pregunta;
+non terminal Atributos atributo_tabla;
+non terminal Atributos lista_atributos_tabla;
+non terminal Atributos atributo_linea;
+non terminal Atributos lista_atributos_linea;
+
+//elementos simples
+non terminal NodoColor color;
+non terminal String fuente;
+non terminal String orientacion;
+non terminal String tipo_borde;
+non terminal String tipo_linea;
+
+//listas
+non terminal java.util.List lista_elementos;
+non terminal java.util.List lista_opciones;
+non terminal java.util.List lista_correctos;
+non terminal java.util.List lista_filas;
+non terminal java.util.List fila;
+non terminal java.util.List lista_celdas;
 non terminal linea;
-non terminal lista_atributos_linea;
-non terminal atributo_linea;
-non terminal tipo_borde;
-non terminal pregunta_special;
-non terminal lista_filas;
-non terminal fila;
-non terminal lista_celdas;
-non terminal celda;
-non terminal lista_correctos;
 
 start with inicio;
 
+/* ======================== INICIO ======================== */
 
-//fase inicial del programa
-/*
-inicio ::= declaraciones formulario codigo
-        | formulario codigo
-        | declaraciones formulario
-        | formulario
-        | codigo
-        ;*/
-inicio ::= declaraciones formulario bloque_codigo
-        | formulario bloque_codigo
-        | declaraciones formulario
-        | declaraciones bloque_codigo
-        | formulario
-        | bloque_codigo
-        | declaraciones
-        ;
+inicio ::= declaraciones:decl formulario:form bloque_codigo:codigo
+           {: RESULT = new NodoPrograma(decl, form, codigo); :}
+         | formulario:form bloque_codigo:codigo
+           {: RESULT = new NodoPrograma(new java.util.ArrayList<>(), form, codigo); :}
+         | declaraciones:decl formulario:form
+           {: RESULT = new NodoPrograma(decl, form, new java.util.ArrayList<>()); :}
+         | declaraciones:decl bloque_codigo:codigo
+           {: RESULT = new NodoPrograma(decl, new java.util.ArrayList<>(), codigo); :}
+         | formulario:form
+           {: RESULT = new NodoPrograma(new java.util.ArrayList<>(), form, new java.util.ArrayList<>()); :}
+         | bloque_codigo:codigo
+           {: RESULT = new NodoPrograma(new java.util.ArrayList<>(), new java.util.ArrayList<>(), codigo); :}
+         | declaraciones:decl
+           {: RESULT = new NodoPrograma(decl, new java.util.ArrayList<>(), new java.util.ArrayList<>()); :}
+         ;
 
-formulario ::= secciones;
+/* ======================== FORMULARIO / SECCIONES ======================== */
 
-secciones ::= seccion
-            | secciones seccion
+formulario ::= secciones:s {: RESULT = s; :} ;
+
+secciones ::= seccion:s
+              {:
+                  java.util.List lista = new java.util.ArrayList<>();
+                  if (s != null) lista.add(s);
+                  RESULT = lista;
+              :}
+            | secciones:lista seccion:s
+              {:
+                  if (s != null) lista.add(s);
+                  RESULT = lista;
+              :}
             ;
-seccion ::= SECTION LCORCHETE lista_atributos RCORCHETE
-        | SECTION LCORCHETE error RCORCHETE
-        ;
 
-lista_atributos ::= atributo
-                  | lista_atributos COMA atributo
+seccion ::= SECTION LCORCHETE lista_atributos:attrs RCORCHETE
+            {:
+                java.util.List elems = attrs.getListaElementos("elements");
+                Atributos styleAttrs = attrs.getEstilosMap("styles");
+                RESULT = new NodoSeccion(attrs.toMap(), elems, buildEstilos(styleAttrs));
+            :}
+          | SECTION LCORCHETE error RCORCHETE
+            {: RESULT = null; :}
+          ;
+
+/* ======================== ATRIBUTOS DE SECCION ======================== */
+
+lista_atributos ::= atributo:a
+                    {: RESULT = a; :}
+                  | lista_atributos:attrs COMA atributo:a
+                    {: attrs.merge(a); RESULT = attrs; :}
                   ;
 
-atributo ::= WIDTH DOS_PUNTOS expresion
-           | HEIGHT DOS_PUNTOS expresion
-           | POINTX DOS_PUNTOS expresion
-           | POINTY DOS_PUNTOS expresion
-           | ORIENTATION DOS_PUNTOS orientacion
-           | STYLES LCORCHETE lista_estilos RCORCHETE
-           | ELEMENTS DOS_PUNTOS LLLAVE lista_elementos RLLAVE
+atributo ::= WIDTH DOS_PUNTOS expresion:e
+             {: Atributos a = new Atributos(); a.put("width", e); RESULT = a; :}
+           | HEIGHT DOS_PUNTOS expresion:e
+             {: Atributos a = new Atributos(); a.put("height", e); RESULT = a; :}
+           | POINTX DOS_PUNTOS expresion:e
+             {: Atributos a = new Atributos(); a.put("pointX", e); RESULT = a; :}
+           | POINTY DOS_PUNTOS expresion:e
+             {: Atributos a = new Atributos(); a.put("pointY", e); RESULT = a; :}
+           | ORIENTATION DOS_PUNTOS orientacion:o
+             {: Atributos a = new Atributos(); a.put("orientation", o); RESULT = a; :}
+           | STYLES LCORCHETE lista_estilos:estilos RCORCHETE
+             {: Atributos a = new Atributos(); a.put("styles", estilos); RESULT = a; :}
+           | ELEMENTS DOS_PUNTOS LLLAVE lista_elementos:elems RLLAVE
+             {: Atributos a = new Atributos(); a.put("elements", elems); RESULT = a; :}
            ;
 
-orientacion ::= HORIZONTAL
-              | VERTICAL
+orientacion ::= HORIZONTAL {: RESULT = "HORIZONTAL"; :}
+              | VERTICAL   {: RESULT = "VERTICAL"; :}
               ;
 
-lista_estilos ::= estilo
-                | lista_estilos COMA estilo
+/* ======================== ESTILOS ======================== */
+
+lista_estilos ::= estilo:e
+                  {: RESULT = e; :}
+                | lista_estilos:attrs COMA estilo:e
+                  {: attrs.merge(e); RESULT = attrs; :}
                 ;
 
-estilo ::= COLOR DOS_PUNTOS color
-         | BACKGROUND_COLOR DOS_PUNTOS color
-         | FONT_FAMILY DOS_PUNTOS fuente
-         | TEXT_SIZE DOS_PUNTOS expresion
-         | BORDER DOS_PUNTOS LPAREN expresion COMA tipo_borde COMA color RPAREN
+estilo ::= COLOR DOS_PUNTOS color:c
+           {: Atributos a = new Atributos(); a.put("color", c); RESULT = a; :}
+         | BACKGROUND_COLOR DOS_PUNTOS color:c
+           {: Atributos a = new Atributos(); a.put("backgroundColor", c); RESULT = a; :}
+         | FONT_FAMILY DOS_PUNTOS fuente:f
+           {: Atributos a = new Atributos(); a.put("fontFamily", f); RESULT = a; :}
+         | TEXT_SIZE DOS_PUNTOS expresion:e
+           {: Atributos a = new Atributos(); a.put("textSize", e); RESULT = a; :}
+         | BORDER DOS_PUNTOS LPAREN expresion:grosor COMA tipo_borde:tipo COMA color:c RPAREN
+           {: Atributos a = new Atributos(); a.put("border", new NodoBorde(grosor, tipo, c)); RESULT = a; :}
          ;
 
-tipo_borde ::= LINE | DOTTED | DOUBLE ;
+tipo_borde ::= LINE   {: RESULT = "LINE"; :}
+             | DOTTED  {: RESULT = "DOTTED"; :}
+             | DOUBLE  {: RESULT = "DOUBLE"; :}
+             ;
 
-color ::= HEX_COLOR
-        | RGB_COLOR
-        | HSL_COLOR
-        | LPAREN expresion COMA expresion COMA expresion RPAREN
-        | RED | BLUE | GREEN | YELLOW | BLACK | WHITE | PURPLE | SKY
+/* ======================== COLORES ======================== */
+
+color ::= HEX_COLOR:h
+          {: RESULT = new NodoColorHex(h.toString()); :}
+        | HSL_COLOR:h
+          {: RESULT = new NodoColorHSL(h.toString()); :}
+        | LPAREN expresion:r COMA expresion:g COMA expresion:b RPAREN
+          {: RESULT = new NodoColorRGB(r, g, b); :}
+        | RED    {: RESULT = new NodoColorNombre("RED"); :}
+        | BLUE   {: RESULT = new NodoColorNombre("BLUE"); :}
+        | GREEN  {: RESULT = new NodoColorNombre("GREEN"); :}
+        | YELLOW {: RESULT = new NodoColorNombre("YELLOW"); :}
+        | BLACK  {: RESULT = new NodoColorNombre("BLACK"); :}
+        | WHITE  {: RESULT = new NodoColorNombre("WHITE"); :}
+        | PURPLE {: RESULT = new NodoColorNombre("PURPLE"); :}
+        | SKY    {: RESULT = new NodoColorNombre("SKY"); :}
         ;
 
-fuente ::= MONO
-         | SANS_SERIF
-         | CURSIVE
+fuente ::= MONO       {: RESULT = "MONO"; :}
+         | SANS_SERIF  {: RESULT = "SANS_SERIF"; :}
+         | CURSIVE     {: RESULT = "CURSIVE"; :}
          ;
+
+/* ======================== EXPRESIONES ======================== */
+
 expresion ::= exp_or:e
-              {:
-                 RESULT = e;
-                 System.out.println("AST Expresion: " + e);
-              :}
+              {: RESULT = e; :}
               ;
 
 exp_or ::= exp_or:izq OR exp_and:der
@@ -292,12 +364,6 @@ exp_factor ::= RESTA exp_factor:e
                {: RESULT = e; :}
              ;
 
-/*
-exp_potencia ::= exp_potencia POTENCIA exp_primaria
-               | exp_potencia MOD exp_primaria
-               | exp_primaria
-               ;*/
-
 exp_potencia ::= exp_mod:izq POTENCIA exp_potencia:der
                  {: RESULT = new NodoOperacionBinaria(izq, "^", der); :}
                | exp_mod:e
@@ -305,26 +371,47 @@ exp_potencia ::= exp_mod:izq POTENCIA exp_potencia:der
                ;
 
 exp_mod ::= exp_mod:izq MOD exp_primaria:der
-            {:  RESULT = new NodoOperacionBinaria(izq, "%", der); :}
+            {: RESULT = new NodoOperacionBinaria(izq, "%", der); :}
           | exp_primaria:e
-            {:  RESULT = e; :}
+            {: RESULT = e; :}
           ;
 
 exp_primaria ::= NUMERO:n
-                {:  RESULT = new NodoNumero(Double.parseDouble(n.toString())); :}
+                 {: RESULT = new NodoNumero(Double.parseDouble(n)); :}
                | CADENA:s
-               {:   RESULT = new NodoCadena(s); :}
+                 {: RESULT = new NodoCadena(s); :}
                | ID:id
-               {:   RESULT = new NodoIdentificador(id.toString()); :}
+                 {: RESULT = new NodoIdentificador(id.toString()); :}
                | LPAREN expresion:e RPAREN
-               {:   RESULT = e; :}
+                 {: RESULT = e; :}
                | COMODIN
-               {:   RESULT = NodoComodin.INSTANCE; :}
+                 {: RESULT = NodoComodin.INSTANCE; :}
                ;
-declaraciones ::= declaracion
-                | declaraciones declaracion
-                | error declaracion
-                | declaraciones error declaracion
+
+/* ======================== DECLARACIONES ======================== */
+
+declaraciones ::= declaracion:d
+                  {:
+                      java.util.List lista = new java.util.ArrayList<>();
+                      if (d != null) lista.add(d);
+                      RESULT = lista;
+                  :}
+                | declaraciones:lista declaracion:d
+                  {:
+                      if (d != null) lista.add(d);
+                      RESULT = lista;
+                  :}
+                | error declaracion:d
+                  {:
+                      java.util.List lista = new java.util.ArrayList<>();
+                      if (d != null) lista.add(d);
+                      RESULT = lista;
+                  :}
+                | declaraciones:lista error declaracion:d
+                  {:
+                      if (d != null) lista.add(d);
+                      RESULT = lista;
+                  :}
                 ;
 
 declaracion ::= NUMBER_TYPE ID:id
@@ -335,7 +422,7 @@ declaracion ::= NUMBER_TYPE ID:id
                 {: RESULT = new NodoDeclaracion("number", id.toString(), e); :}
               | STRING_TYPE ID:id ASIGNACION expresion:e
                 {: RESULT = new NodoDeclaracion("string", id.toString(), e); :}
-              | SPECIAL ID:id ASIGNACION pregunta_special
+              | SPECIAL ID:id ASIGNACION pregunta_special:p
                 {: RESULT = new NodoDeclaracion("special", id.toString(), null); :}
               ;
 
@@ -343,59 +430,229 @@ asignacion ::= ID:id ASIGNACION expresion:e
                {: RESULT = new NodoAsignacion(id.toString(), e); :}
                ;
 
-lista_elementos ::= elemento
-                  | lista_elementos COMA elemento
-                  | lista_elementos COMA error
+/* ======================== ELEMENTOS ======================== */
+
+lista_elementos ::= elemento:e
+                    {:
+                        java.util.List lista = new java.util.ArrayList<>();
+                        if (e != null) lista.add(e);
+                        RESULT = lista;
+                    :}
+                  | lista_elementos:lista COMA elemento:e
+                    {:
+                        if (e != null) lista.add(e);
+                        RESULT = lista;
+                    :}
+                  | lista_elementos:lista COMA error
+                    {: RESULT = lista; :}
                   | error
+                    {: RESULT = new java.util.ArrayList<>(); :}
                   ;
 
-elemento ::= texto
-           | pregunta
-           | tabla
-           | linea
+elemento ::= texto:t       {: RESULT = t; :}
+           | pregunta:p     {: RESULT = p; :}
+           | tabla:tb       {: RESULT = tb; :}
+           | seccion:s      {: RESULT = s; :}
+           | linea          {: RESULT = null; :}
            ;
 
-texto ::= TEXT LCORCHETE lista_atributos_texto RCORCHETE
+/* ======================== TEXTO ======================== */
+
+texto ::= TEXT LCORCHETE lista_atributos_texto:attrs RCORCHETE
+          {:
+              NodoExpresion contenido = attrs.getExpresion("content");
+              NodoExpresion ancho = attrs.getExpresion("width");
+              NodoExpresion alto = attrs.getExpresion("height");
+              Atributos styleAttrs = attrs.getEstilosMap("styles");
+              RESULT = new NodoTexto(contenido, ancho, alto, buildEstilos(styleAttrs));
+          :}
         | TEXT LCORCHETE error RCORCHETE
+          {: RESULT = null; :}
         ;
 
-lista_atributos_texto ::= atributo_texto
-                        | lista_atributos_texto COMA atributo_texto
+lista_atributos_texto ::= atributo_texto:a
+                          {: RESULT = a; :}
+                        | lista_atributos_texto:attrs COMA atributo_texto:a
+                          {: attrs.merge(a); RESULT = attrs; :}
                         ;
 
-atributo_texto ::= CONTENT DOS_PUNTOS CADENA ;
+atributo_texto ::= CONTENT DOS_PUNTOS CADENA:s
+                   {: Atributos a = new Atributos(); a.put("content", new NodoCadena(s)); RESULT = a; :}
+                 | WIDTH DOS_PUNTOS expresion:e
+                   {: Atributos a = new Atributos(); a.put("width", e); RESULT = a; :}
+                 | HEIGHT DOS_PUNTOS expresion:e
+                   {: Atributos a = new Atributos(); a.put("height", e); RESULT = a; :}
+                 | STYLES LCORCHETE lista_estilos:estilos RCORCHETE
+                   {: Atributos a = new Atributos(); a.put("styles", estilos); RESULT = a; :}
+                 ;
 
-pregunta ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
-           | OPEN_QUESTION LCORCHETE error RCORCHETE
-           | SELECT_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
-           | SELECT_QUESTION LCORCHETE error RCORCHETE
-           | MULTIPLE_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
-           | MULTIPLE_QUESTION LCORCHETE error RCORCHETE
-           | DROP_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
-           | DROP_QUESTION LCORCHETE error RCORCHETE
+/* ======================== PREGUNTAS ======================== */
+
+pregunta ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+             {:
+                 RESULT = new NodoPreguntaAbierta(
+                     attrs.getExpresion("label"),
+                     attrs.getExpresion("width"),
+                     attrs.getExpresion("height"),
+                     buildEstilos(attrs.getEstilosMap("styles"))
+                 );
+             :}
+           | DROP_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+             {:
+                 RESULT = new NodoPreguntaDesplegable(
+                     attrs.getExpresion("label"),
+                     attrs.getExpresion("width"),
+                     attrs.getExpresion("height"),
+                     attrs.getListaExpresiones("options"),
+                     attrs.getExpresion("correct"),
+                     buildEstilos(attrs.getEstilosMap("styles"))
+                 );
+             :}
+           | SELECT_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+             {:
+                 RESULT = new NodoPreguntaSeleccion(
+                     attrs.getExpresion("width"),
+                     attrs.getExpresion("height"),
+                     attrs.getListaExpresiones("options"),
+                     attrs.getExpresion("correct"),
+                     buildEstilos(attrs.getEstilosMap("styles"))
+                 );
+             :}
+           | MULTIPLE_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+             {:
+                 RESULT = new NodoPreguntaMultiple(
+                     attrs.getExpresion("width"),
+                     attrs.getExpresion("height"),
+                     attrs.getListaExpresiones("options"),
+                     attrs.getListaExpresiones("correctList"),
+                     buildEstilos(attrs.getEstilosMap("styles"))
+                 );
+             :}
+           | OPEN_QUESTION LCORCHETE error RCORCHETE        {: RESULT = null; :}
+           | DROP_QUESTION LCORCHETE error RCORCHETE        {: RESULT = null; :}
+           | SELECT_QUESTION LCORCHETE error RCORCHETE      {: RESULT = null; :}
+           | MULTIPLE_QUESTION LCORCHETE error RCORCHETE    {: RESULT = null; :}
            ;
 
-lista_atributos_pregunta ::= atributo_pregunta
-                           | lista_atributos_pregunta COMA atributo_pregunta
+lista_atributos_pregunta ::= atributo_pregunta:a
+                             {: RESULT = a; :}
+                           | lista_atributos_pregunta:attrs COMA atributo_pregunta:a
+                             {: attrs.merge(a); RESULT = attrs; :}
                            ;
 
-atributo_pregunta ::= LABEL DOS_PUNTOS CADENA
-                    | WIDTH DOS_PUNTOS expresion
-                    | HEIGHT DOS_PUNTOS expresion
-                    | OPTIONS DOS_PUNTOS LLLAVE lista_opciones RLLAVE
-                    | OPTIONS DOS_PUNTOS POKEMON LPAREN NUMBER_PK COMA expresion COMA expresion RPAREN
-                    | CORRECT DOS_PUNTOS expresion
-                    | CORRECT DOS_PUNTOS LLLAVE lista_correctos RLLAVE
-                    | STYLES LCORCHETE lista_estilos RCORCHETE
+atributo_pregunta ::= LABEL DOS_PUNTOS CADENA:s
+                      {: Atributos a = new Atributos(); a.put("label", new NodoCadena(s)); RESULT = a; :}
+                    | WIDTH DOS_PUNTOS expresion:e
+                      {: Atributos a = new Atributos(); a.put("width", e); RESULT = a; :}
+                    | HEIGHT DOS_PUNTOS expresion:e
+                      {: Atributos a = new Atributos(); a.put("height", e); RESULT = a; :}
+                    | OPTIONS DOS_PUNTOS LLLAVE lista_opciones:opts RLLAVE
+                      {: Atributos a = new Atributos(); a.put("options", opts); RESULT = a; :}
+                    | OPTIONS DOS_PUNTOS POKEMON LPAREN NUMBER_PK COMA expresion:desde COMA expresion:hasta RPAREN
+                      {:
+                          Atributos a = new Atributos();
+                          java.util.List pokemon = new java.util.ArrayList<>();
+                          pokemon.add(desde);
+                          pokemon.add(hasta);
+                          a.put("pokemon", pokemon);
+                          RESULT = a;
+                      :}
+                    | CORRECT DOS_PUNTOS expresion:e
+                      {: Atributos a = new Atributos(); a.put("correct", e); RESULT = a; :}
+                    | CORRECT DOS_PUNTOS LLLAVE lista_correctos:lista RLLAVE
+                      {: Atributos a = new Atributos(); a.put("correctList", lista); RESULT = a; :}
+                    | STYLES LCORCHETE lista_estilos:estilos RCORCHETE
+                      {: Atributos a = new Atributos(); a.put("styles", estilos); RESULT = a; :}
                     ;
 
-lista_opciones ::= CADENA
-                 | lista_opciones COMA CADENA
+lista_opciones ::= CADENA:s
+                   {:
+                       java.util.List lista = new java.util.ArrayList<>();
+                       lista.add(new NodoCadena(s));
+                       RESULT = lista;
+                   :}
+                 | lista_opciones:lista COMA CADENA:s
+                   {: lista.add(new NodoCadena(s)); RESULT = lista; :}
                  ;
+
+lista_correctos ::= expresion:e
+                    {:
+                        java.util.List lista = new java.util.ArrayList<>();
+                        lista.add(e);
+                        RESULT = lista;
+                    :}
+                  | lista_correctos:lista COMA expresion:e
+                    {: lista.add(e); RESULT = lista; :}
+                  ;
+
+/* ======================== TABLA ======================== */
+
+tabla ::= TABLE LCORCHETE lista_atributos_tabla:attrs RCORCHETE
+          {:
+              java.util.List filas = attrs.getListaFilas("filas");
+              Atributos styleAttrs = attrs.getEstilosMap("styles");
+              RESULT = new NodoTabla(attrs.toMap(), filas, buildEstilos(styleAttrs));
+          :}
+        | TABLE LCORCHETE error RCORCHETE
+          {: RESULT = null; :}
+        ;
+
+lista_atributos_tabla ::= atributo_tabla:a
+                          {: RESULT = a; :}
+                        | lista_atributos_tabla:attrs COMA atributo_tabla:a
+                          {: attrs.merge(a); RESULT = attrs; :}
+                        ;
+
+atributo_tabla ::= WIDTH DOS_PUNTOS expresion:e
+                   {: Atributos a = new Atributos(); a.put("width", e); RESULT = a; :}
+                 | HEIGHT DOS_PUNTOS expresion:e
+                   {: Atributos a = new Atributos(); a.put("height", e); RESULT = a; :}
+                 | POINTX DOS_PUNTOS expresion:e
+                   {: Atributos a = new Atributos(); a.put("pointX", e); RESULT = a; :}
+                 | POINTY DOS_PUNTOS expresion:e
+                   {: Atributos a = new Atributos(); a.put("pointY", e); RESULT = a; :}
+                 | ELEMENTS DOS_PUNTOS LLLAVE lista_filas:filas RLLAVE
+                   {: Atributos a = new Atributos(); a.put("filas", filas); RESULT = a; :}
+                 | STYLES LCORCHETE lista_estilos:estilos RCORCHETE
+                   {: Atributos a = new Atributos(); a.put("styles", estilos); RESULT = a; :}
+                 ;
+
+lista_filas ::= fila:f
+                {:
+                    java.util.List lista = new java.util.ArrayList<>();
+                    lista.add(f);
+                    RESULT = lista;
+                :}
+              | lista_filas:lista COMA fila:f
+                {: lista.add(f); RESULT = lista; :}
+              ;
+
+fila ::= LCORCHETE lista_celdas:celdas RCORCHETE
+         {: RESULT = celdas; :}
+         ;
+
+lista_celdas ::= celda:c
+                 {:
+                     java.util.List lista = new java.util.ArrayList<>();
+                     if (c != null) lista.add(c);
+                     RESULT = lista;
+                 :}
+               | lista_celdas:lista COMA celda:c
+                 {:
+                     if (c != null) lista.add(c);
+                     RESULT = lista;
+                 :}
+               ;
+
+celda ::= LLLAVE elemento:e RLLAVE
+          {: RESULT = e; :}
+          ;
+
+/* ======================== BLOQUE DE CODIGO ======================== */
 
 bloque_codigo ::= sentencia:s
                   {:
-                     java.util.List<NodoInstruccion> lista = new java.util.ArrayList<>();
+                     java.util.List lista = new java.util.ArrayList<>();
                      if (s != null) lista.add(s);
                      RESULT = lista;
                   :}
@@ -406,7 +663,7 @@ bloque_codigo ::= sentencia:s
                   :}
                 | error sentencia:s
                   {:
-                     java.util.List<NodoInstruccion> lista = new java.util.ArrayList<>();
+                     java.util.List lista = new java.util.ArrayList<>();
                      if (s != null) lista.add(s);
                      RESULT = lista;
                   :}
@@ -431,6 +688,8 @@ sentencia ::= asignacion:a
               {: RESULT = dr; :}
             ;
 
+/* ======================== IF / ELSE ======================== */
+
 else_parte ::= /* vacío */
                {: RESULT = null; :}
              | ELSE LLLAVE bloque_codigo:cuerpo RLLAVE
@@ -447,6 +706,8 @@ if_stmt ::= IF LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE e
             {: RESULT = null; :}
           ;
 
+/* ======================== WHILE ======================== */
+
 while_stmt ::= WHILE LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
                {: RESULT = new NodoWhile(cond, cuerpo); :}
              | WHILE LPAREN error RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
@@ -455,6 +716,7 @@ while_stmt ::= WHILE LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RL
                {: RESULT = null; :}
              ;
 
+/* ======================== FOR ======================== */
 
 for_stmt ::= FOR LPAREN asignacion:inicializacion PUNTO_COMA expresion:cond PUNTO_COMA asignacion:act RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
              {: RESULT = new NodoFor(inicializacion, cond, act, cuerpo); :}
@@ -466,90 +728,100 @@ for_stmt ::= FOR LPAREN asignacion:inicializacion PUNTO_COMA expresion:cond PUNT
              {: RESULT = null; :}
            ;
 
+/* ======================== DO-WHILE ======================== */
+
 do_while_stmt ::= DO LLLAVE bloque_codigo:cuerpo RLLAVE WHILE LPAREN expresion:cond RPAREN
                   {: RESULT = new NodoDoWhile(cuerpo, cond); :}
                 | DO LLLAVE error RLLAVE WHILE LPAREN expresion:cond RPAREN
                   {: RESULT = null; :}
                 ;
 
-//tablas tambien pueden fallar
-
-tabla ::= TABLE LCORCHETE lista_atributos_tabla RCORCHETE
-        | TABLE LCORCHETE error RCORCHETE
-        ;
-
-lista_atributos_tabla ::= atributo_tabla
-                        | lista_atributos_tabla COMA atributo_tabla
-                        ;
-
-atributo_tabla ::= WIDTH DOS_PUNTOS expresion
-                 | HEIGHT DOS_PUNTOS expresion
-                 | POINTX DOS_PUNTOS expresion
-                 | POINTY DOS_PUNTOS expresion
-                 | ELEMENTS DOS_PUNTOS LLLAVE lista_filas RLLAVE
-                 | STYLES LCORCHETE lista_estilos RCORCHETE
-                 ;
-lista_filas ::= fila
-              | lista_filas COMA fila
-              ;
-
-fila ::= LCORCHETE lista_celdas RCORCHETE ;
-
-lista_celdas ::= celda
-               | lista_celdas COMA celda
-               ;
-
-celda ::= LLLAVE elemento RLLAVE ;
-
-tipo_linea ::= DOTTED
-             | DOUBLE
-             ;
-/*
-codigo ::= LLLAVE bloque_codigo RLLAVE
-         | LLLAVE error RLLAVE
-         ;
-*/
-linea ::= LINE LCORCHETE lista_atributos_linea RCORCHETE;
-
-lista_atributos_linea ::= atributo_linea
-                        | lista_atributos_linea COMA atributo_linea
-                        ;
-
-atributo_linea ::= WIDTH DOS_PUNTOS NUMERO
-                | POINTX DOS_PUNTOS NUMERO
-                | POINTY DOS_PUNTOS NUMERO
-                | LINE DOS_PUNTOS tipo_linea
-                ;
-
-lista_args ::= /* vacío */
-               {: RESULT = new java.util.ArrayList<NodoExpresion>(); :}
-             | expresion:e
-               {:
-                  java.util.List<NodoExpresion> lista = new java.util.ArrayList<>();
-                  lista.add(e);
-                  RESULT = lista;
-               :}
-             | lista_args:lista COMA expresion:e
-               {:
-                  lista.add(e);
-                  RESULT = lista;
-               :}
-             ;
+/* ======================== DRAW ======================== */
 
 draw_stmt ::= ID:id PUNTO DRAW LPAREN lista_args:args RPAREN
               {: RESULT = new NodoDraw(id.toString(), args); :}
               ;
 
-lista_correctos ::= expresion
-                  | lista_correctos COMA expresion
-                  ;
+lista_args ::= /* vacío */
+               {: RESULT = new java.util.ArrayList<>(); :}
+             | expresion:e
+               {:
+                  java.util.List lista = new java.util.ArrayList<>();
+                  lista.add(e);
+                  RESULT = lista;
+               :}
+             | lista_args:lista COMA expresion:e
+               {: lista.add(e); RESULT = lista; :}
+             ;
 
-pregunta_special ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
-                   | OPEN_QUESTION LCORCHETE error RCORCHETE
-                   | DROP_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
-                   | DROP_QUESTION LCORCHETE error RCORCHETE
-                   | SELECT_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
-                   | SELECT_QUESTION LCORCHETE error RCORCHETE
-                   | MULTIPLE_QUESTION LCORCHETE lista_atributos_pregunta RCORCHETE
-                   | MULTIPLE_QUESTION LCORCHETE error RCORCHETE
+/* ======================== LINEA ======================== */
+
+linea ::= LINE LCORCHETE lista_atributos_linea:attrs RCORCHETE ;
+
+lista_atributos_linea ::= atributo_linea:a
+                          {: RESULT = a; :}
+                        | lista_atributos_linea:attrs COMA atributo_linea:a
+                          {: attrs.merge(a); RESULT = attrs; :}
+                        ;
+
+atributo_linea ::= WIDTH DOS_PUNTOS NUMERO:n
+                   {: Atributos a = new Atributos(); a.put("width", n); RESULT = a; :}
+                 | POINTX DOS_PUNTOS NUMERO:n
+                   {: Atributos a = new Atributos(); a.put("pointX", n); RESULT = a; :}
+                 | POINTY DOS_PUNTOS NUMERO:n
+                   {: Atributos a = new Atributos(); a.put("pointY", n); RESULT = a; :}
+                 | LINE DOS_PUNTOS tipo_linea:t
+                   {: Atributos a = new Atributos(); a.put("line", t); RESULT = a; :}
+                 ;
+
+tipo_linea ::= DOTTED  {: RESULT = "DOTTED"; :}
+             | DOUBLE  {: RESULT = "DOUBLE"; :}
+             ;
+
+/* ======================== PREGUNTA SPECIAL ======================== */
+
+pregunta_special ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+                     {:
+                         RESULT = new NodoPreguntaAbierta(
+                             attrs.getExpresion("label"),
+                             attrs.getExpresion("width"),
+                             attrs.getExpresion("height"),
+                             buildEstilos(attrs.getEstilosMap("styles"))
+                         );
+                     :}
+                   | DROP_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+                     {:
+                         RESULT = new NodoPreguntaDesplegable(
+                             attrs.getExpresion("label"),
+                             attrs.getExpresion("width"),
+                             attrs.getExpresion("height"),
+                             attrs.getListaExpresiones("options"),
+                             attrs.getExpresion("correct"),
+                             buildEstilos(attrs.getEstilosMap("styles"))
+                         );
+                     :}
+                   | SELECT_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+                     {:
+                         RESULT = new NodoPreguntaSeleccion(
+                             attrs.getExpresion("width"),
+                             attrs.getExpresion("height"),
+                             attrs.getListaExpresiones("options"),
+                             attrs.getExpresion("correct"),
+                             buildEstilos(attrs.getEstilosMap("styles"))
+                         );
+                     :}
+                   | MULTIPLE_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+                     {:
+                         RESULT = new NodoPreguntaMultiple(
+                             attrs.getExpresion("width"),
+                             attrs.getExpresion("height"),
+                             attrs.getListaExpresiones("options"),
+                             attrs.getListaExpresiones("correctList"),
+                             buildEstilos(attrs.getEstilosMap("styles"))
+                         );
+                     :}
+                   | OPEN_QUESTION LCORCHETE error RCORCHETE        {: RESULT = null; :}
+                   | DROP_QUESTION LCORCHETE error RCORCHETE        {: RESULT = null; :}
+                   | SELECT_QUESTION LCORCHETE error RCORCHETE      {: RESULT = null; :}
+                   | MULTIPLE_QUESTION LCORCHETE error RCORCHETE    {: RESULT = null; :}
                    ;
