@@ -103,11 +103,9 @@ non terminal formulario;
 non terminal secciones;
 non terminal seccion;
 non terminal pregunta;
-non terminal asignacion;
 non terminal color;
 non terminal tabla;
 non terminal texto;
-non terminal bloque_codigo;
 non terminal atributo;
 non terminal orientacion;
 non terminal fuente;
@@ -127,7 +125,19 @@ non terminal NodoExpresion exp_mod;
 non terminal NodoExpresion exp_primaria;
 
 non terminal declaraciones;
-non terminal declaracion;
+
+non terminal NodoInstruccion declaracion;
+non terminal NodoAsignacion asignacion;
+non terminal NodoInstruccion sentencia;
+non terminal NodoInstruccion if_stmt;
+non terminal NodoInstruccion while_stmt;
+non terminal NodoInstruccion for_stmt;
+non terminal NodoInstruccion do_while_stmt;
+non terminal NodoInstruccion draw_stmt;
+non terminal NodoInstruccion else_parte;
+non terminal java.util.List bloque_codigo;
+non terminal java.util.List lista_args;
+
 non terminal lista_elementos;
 non terminal elemento;
 non terminal lista_atributos_texto;
@@ -135,11 +145,7 @@ non terminal atributo_texto;
 non terminal lista_atributos_pregunta;
 non terminal atributo_pregunta;
 non terminal lista_opciones;
-non terminal sentencia;
-non terminal if_stmt;
-non terminal while_stmt;
-non terminal for_stmt;
-non terminal do_while_stmt;
+
 non terminal lista_atributos_tabla;
 non terminal atributo_tabla;
 non terminal tipo_linea;
@@ -147,15 +153,12 @@ non terminal tipo_linea;
 non terminal linea;
 non terminal lista_atributos_linea;
 non terminal atributo_linea;
-non terminal draw_stmt;
 non terminal tipo_borde;
 non terminal pregunta_special;
-non terminal else_parte;
 non terminal lista_filas;
 non terminal fila;
 non terminal lista_celdas;
 non terminal celda;
-non terminal lista_args;
 non terminal lista_correctos;
 
 start with inicio;
@@ -324,14 +327,21 @@ declaraciones ::= declaracion
                 | declaraciones error declaracion
                 ;
 
-declaracion ::= NUMBER_TYPE ID
-              | STRING_TYPE ID
-              | NUMBER_TYPE ID ASIGNACION expresion
-              | STRING_TYPE ID ASIGNACION expresion
-              | SPECIAL ID ASIGNACION pregunta_special
+declaracion ::= NUMBER_TYPE ID:id
+                {: RESULT = new NodoDeclaracion("number", id.toString(), null); :}
+              | STRING_TYPE ID:id
+                {: RESULT = new NodoDeclaracion("string", id.toString(), null); :}
+              | NUMBER_TYPE ID:id ASIGNACION expresion:e
+                {: RESULT = new NodoDeclaracion("number", id.toString(), e); :}
+              | STRING_TYPE ID:id ASIGNACION expresion:e
+                {: RESULT = new NodoDeclaracion("string", id.toString(), e); :}
+              | SPECIAL ID:id ASIGNACION pregunta_special
+                {: RESULT = new NodoDeclaracion("special", id.toString(), null); :}
               ;
 
-asignacion ::= ID ASIGNACION expresion ;
+asignacion ::= ID:id ASIGNACION expresion:e
+               {: RESULT = new NodoAsignacion(id.toString(), e); :}
+               ;
 
 lista_elementos ::= elemento
                   | lista_elementos COMA elemento
@@ -383,44 +393,83 @@ lista_opciones ::= CADENA
                  | lista_opciones COMA CADENA
                  ;
 
-bloque_codigo ::= sentencia
-                | bloque_codigo sentencia
-                | error sentencia
-                | bloque_codigo error sentencia
+bloque_codigo ::= sentencia:s
+                  {:
+                     java.util.List<NodoInstruccion> lista = new java.util.ArrayList<>();
+                     if (s != null) lista.add(s);
+                     RESULT = lista;
+                  :}
+                | bloque_codigo:lista sentencia:s
+                  {:
+                     if (s != null) lista.add(s);
+                     RESULT = lista;
+                  :}
+                | error sentencia:s
+                  {:
+                     java.util.List<NodoInstruccion> lista = new java.util.ArrayList<>();
+                     if (s != null) lista.add(s);
+                     RESULT = lista;
+                  :}
+                | bloque_codigo:lista error sentencia:s
+                  {:
+                     if (s != null) lista.add(s);
+                     RESULT = lista;
+                  :}
                 ;
 
-sentencia ::= asignacion
-            | if_stmt
-            | while_stmt
-            | for_stmt
-            | do_while_stmt
-            | draw_stmt
+sentencia ::= asignacion:a
+              {: RESULT = a; :}
+            | if_stmt:i
+              {: RESULT = i; :}
+            | while_stmt:w
+              {: RESULT = w; :}
+            | for_stmt:f
+              {: RESULT = f; :}
+            | do_while_stmt:dw
+              {: RESULT = dw; :}
+            | draw_stmt:dr
+              {: RESULT = dr; :}
             ;
 
 else_parte ::= /* vacío */
-             | ELSE LLLAVE bloque_codigo RLLAVE
-             | ELSE IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE else_parte
+               {: RESULT = null; :}
+             | ELSE LLLAVE bloque_codigo:cuerpo RLLAVE
+               {: RESULT = new NodoElse(cuerpo); :}
+             | ELSE IF LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE else_parte:ep
+               {: RESULT = new NodoIf(cond, cuerpo, ep); :}
              ;
 
-if_stmt ::= IF LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE else_parte
-           | IF LPAREN error RPAREN LLLAVE bloque_codigo RLLAVE else_parte
-           | IF LPAREN expresion RPAREN LLLAVE error RLLAVE
-           ;
+if_stmt ::= IF LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE else_parte:ep
+            {: RESULT = new NodoIf(cond, cuerpo, ep); :}
+          | IF LPAREN error RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE else_parte:ep
+            {: RESULT = null; :}
+          | IF LPAREN expresion:cond RPAREN LLLAVE error RLLAVE
+            {: RESULT = null; :}
+          ;
 
-while_stmt ::= WHILE LPAREN expresion RPAREN LLLAVE bloque_codigo RLLAVE
-             | WHILE LPAREN error RPAREN LLLAVE bloque_codigo RLLAVE
-             | WHILE LPAREN expresion RPAREN LLLAVE error RLLAVE
+while_stmt ::= WHILE LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
+               {: RESULT = new NodoWhile(cond, cuerpo); :}
+             | WHILE LPAREN error RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
+               {: RESULT = null; :}
+             | WHILE LPAREN expresion:cond RPAREN LLLAVE error RLLAVE
+               {: RESULT = null; :}
              ;
 
 
-for_stmt ::= FOR LPAREN asignacion PUNTO_COMA expresion PUNTO_COMA asignacion RPAREN LLLAVE bloque_codigo RLLAVE
-           | FOR LPAREN ID IN expresion RANGO expresion RPAREN LLLAVE bloque_codigo RLLAVE
-           | FOR LPAREN error RPAREN LLLAVE bloque_codigo RLLAVE
+for_stmt ::= FOR LPAREN asignacion:inicializacion PUNTO_COMA expresion:cond PUNTO_COMA asignacion:act RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
+             {: RESULT = new NodoFor(inicializacion, cond, act, cuerpo); :}
+           | FOR LPAREN ID:id IN expresion:ini RANGO expresion:fin RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
+             {: RESULT = new NodoForRango(id.toString(), ini, fin, cuerpo); :}
+           | FOR LPAREN error RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
+             {: RESULT = null; :}
            | FOR LPAREN error RPAREN LLLAVE error RLLAVE
+             {: RESULT = null; :}
            ;
 
-do_while_stmt ::= DO LLLAVE bloque_codigo RLLAVE WHILE LPAREN expresion RPAREN
-                | DO LLLAVE error RLLAVE WHILE LPAREN expresion RPAREN
+do_while_stmt ::= DO LLLAVE bloque_codigo:cuerpo RLLAVE WHILE LPAREN expresion:cond RPAREN
+                  {: RESULT = new NodoDoWhile(cuerpo, cond); :}
+                | DO LLLAVE error RLLAVE WHILE LPAREN expresion:cond RPAREN
+                  {: RESULT = null; :}
                 ;
 
 //tablas tambien pueden fallar
@@ -473,11 +522,23 @@ atributo_linea ::= WIDTH DOS_PUNTOS NUMERO
                 ;
 
 lista_args ::= /* vacío */
-             | expresion
-             | lista_args COMA expresion
+               {: RESULT = new java.util.ArrayList<NodoExpresion>(); :}
+             | expresion:e
+               {:
+                  java.util.List<NodoExpresion> lista = new java.util.ArrayList<>();
+                  lista.add(e);
+                  RESULT = lista;
+               :}
+             | lista_args:lista COMA expresion:e
+               {:
+                  lista.add(e);
+                  RESULT = lista;
+               :}
              ;
 
-draw_stmt ::= ID PUNTO DRAW LPAREN lista_args RPAREN ;
+draw_stmt ::= ID:id PUNTO DRAW LPAREN lista_args:args RPAREN
+              {: RESULT = new NodoDraw(id.toString(), args); :}
+              ;
 
 lista_correctos ::= expresion
                   | lista_correctos COMA expresion
