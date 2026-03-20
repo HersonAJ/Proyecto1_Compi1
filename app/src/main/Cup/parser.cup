@@ -423,7 +423,7 @@ declaracion ::= NUMBER_TYPE ID:id
               | STRING_TYPE ID:id ASIGNACION expresion:e
                 {: RESULT = new NodoDeclaracion("string", id.toString(), e); :}
               | SPECIAL ID:id ASIGNACION pregunta_special:p
-                {: RESULT = new NodoDeclaracion("special", id.toString(), null); :}
+                {: RESULT = new NodoDeclaracion("special", id.toString(), p); :}
               ;
 
 asignacion ::= ID:id ASIGNACION expresion:e

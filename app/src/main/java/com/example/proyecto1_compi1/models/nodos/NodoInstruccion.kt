@@ -5,7 +5,7 @@ sealed class NodoInstruccion
 data class NodoDeclaracion(
     val tipo: String,
     val nombre: String,
-    val valor: NodoExpresion?
+    val valor: Any?
 ) : NodoInstruccion()
 
 data class NodoAsignacion(

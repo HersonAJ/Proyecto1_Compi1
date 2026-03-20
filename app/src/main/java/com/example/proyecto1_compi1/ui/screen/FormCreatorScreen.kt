@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.example.proyecto1_compi1.ViewModel.FormularioViewModel
+import com.example.proyecto1_compi1.ui.screen.DebugDialog
 
 @Composable
 fun FormCreatorScreen(
@@ -28,13 +29,26 @@ fun FormCreatorScreen(
     val isAnalizando by viewModel.isAnalizando.collectAsState()
     val errores by viewModel.reporteErrores.collectAsState()
 
-    // cálculo de fila y columna
+    //estados para el debug dialog
+    val mostrarDebug by viewModel.mostrarDebug.collectAsState()
+    val codigoPkm by viewModel.codigoPkm.collectAsState()
+
+    // calculo de fila y columna
 
     val cursorPos = codigo.selection.start
     val textoAntesCursor = codigo.text.take(cursorPos)
 
     val fila = textoAntesCursor.count { it == '\n' } + 1
     val columna = cursorPos - (textoAntesCursor.lastIndexOf('\n') + 1) + 1
+
+    // debug dialog, se muestra automáticamente al compilar
+    if (mostrarDebug) {
+        DebugDialog(
+            codigoPkm = codigoPkm,
+            errores = errores,
+            onDismiss = { viewModel.cerrarDebug() }
+        )
+    }
 
     Column(
         modifier = Modifier

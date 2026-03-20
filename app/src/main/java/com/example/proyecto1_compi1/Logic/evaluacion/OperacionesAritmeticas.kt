@@ -50,7 +50,7 @@ class OperacionesAritmeticas (
         val numIzq = convertidor.aDouble(izq)
         val numDer = convertidor.aDouble(der)
 
-        if (numIzq != null && numDer != null) return op(numDer, numDer)
+        if (numIzq != null && numDer != null) return op(numIzq, numDer)
         errores.add("operacion aritmetica invalida entre '$izq' y '$der'" )
         return null
     }

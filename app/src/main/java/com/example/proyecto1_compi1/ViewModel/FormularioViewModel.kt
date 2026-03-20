@@ -29,6 +29,15 @@ class FormularioViewModel: ViewModel() {
     private val _isAnalizando = MutableStateFlow(false)
     val isAnalizando: StateFlow<Boolean> = _isAnalizando.asStateFlow()
 
+    //debung
+    //salida del generador de código
+    private val _codigoPkm = MutableStateFlow<String?>(null)
+    val codigoPkm: StateFlow<String?> = _codigoPkm.asStateFlow()
+
+    //controla si se muestra el debug dialog
+    private val _mostrarDebug = MutableStateFlow(false)
+    val mostrarDebug: StateFlow<Boolean> = _mostrarDebug.asStateFlow()
+
     private val analizador = Analizador1()
 
     fun actualizarCodigo(nuevoCodigo: TextFieldValue) {
@@ -42,18 +51,26 @@ class FormularioViewModel: ViewModel() {
             _erroresLexicos.value = emptyList()
             _erroresSintacticos.value = emptyList()
             _reporteErrores.value = emptyList()
+            _codigoPkm.value = null
 
-            val (lexicos, sintacticos) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                analizador.analizar(_codigo.value.text)
-                Pair(analizador.getErroresLexicos(), analizador.getErroresSintacticos())
+            val resultado = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                val pkm = analizador.analizar(_codigo.value.text)
+                Triple(
+                    analizador.getErroresLexicos(),
+                    analizador.getErroresSintacticos(),
+                    pkm
+                )
             }
+
+            val lexicos = resultado.first
+            val sintacticos = resultado.second
+            _codigoPkm.value = resultado.third
 
             _erroresLexicos.value = lexicos
             _erroresSintacticos.value = sintacticos
 
             val reporte = mutableListOf<ErrorReporte>()
 
-            // errores lexicos
             for (error in lexicos) {
                 reporte.add(
                     ErrorReporte(
@@ -66,7 +83,6 @@ class FormularioViewModel: ViewModel() {
                 )
             }
 
-            // errores sintacticos
             for (error in sintacticos) {
                 reporte.add(
                     ErrorReporte(
@@ -79,15 +95,35 @@ class FormularioViewModel: ViewModel() {
                 )
             }
 
-            _reporteErrores.value = reporte
+            //errores semánticos al reporte
+            for (error in analizador.getErroresSemanticos()) {
+                reporte.add(
+                    ErrorReporte(
+                        lexema = "",
+                        linea = 0,
+                        columna = 0,
+                        tipo = "Semantico",
+                        descripcion = error
+                    )
+                )
+            }
 
+            _reporteErrores.value = reporte
             _isAnalizando.value = false
+
+            // Mostrar debug automáticamente despues de compilar
+            _mostrarDebug.value = true
         }
+    }
+
+    fun cerrarDebug() {
+        _mostrarDebug.value = false
     }
 
     fun limpiarResultados() {
         _erroresLexicos.value = emptyList()
         _erroresSintacticos.value = emptyList()
         _reporteErrores.value = emptyList()
+        _codigoPkm.value = null
     }
 }

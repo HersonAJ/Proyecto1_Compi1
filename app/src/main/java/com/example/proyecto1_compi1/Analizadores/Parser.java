@@ -2148,7 +2148,7 @@ class CUP$Parser$actions {
 		int pleft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
 		int pright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
 		NodoElemento p = (NodoElemento)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new NodoDeclaracion("special", id.toString(), null); 
+		 RESULT = new NodoDeclaracion("special", id.toString(), p); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("declaracion",14, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
