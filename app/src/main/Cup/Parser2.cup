@@ -1,0 +1,485 @@
+package com.example.proyecto1_compi1.Analizadores;
+
+import java_cup.runtime.Symbol;
+import com.example.proyecto1_compi1.models.ErrorSintactico;
+import java.util.*;
+import com.example.proyecto1_compi1.models.nodo2.*;
+
+parser code
+{:
+    private List<ErrorSintactico> erroresSintacticos = new ArrayList<>();
+
+    public void syntax_error(Symbol s) {
+        String lexema = (s != null && s.value != null)
+                ? s.value.toString()
+                : (s != null ? symbl_name_from_id(s.sym) : "desconocido");
+
+        int linea   = (s != null) ? s.left  : 0;
+        int columna = (s != null) ? s.right : 0;
+
+        StringBuilder descripcion = new StringBuilder();
+        descripcion.append("Se encontro '").append(lexema).append("'. ");
+
+        if (expected_token_ids().isEmpty()) {
+            descripcion.append("No se esperaba ningun simbolo.");
+        } else {
+            descripcion.append("Se esperaba: ");
+            for (Integer id : expected_token_ids()) {
+                String nombre = symbl_name_from_id(id);
+                if (!nombre.equals("error")) {
+                    descripcion.append(nombre).append(", ");
+                }
+            }
+            if (descripcion.toString().endsWith(", ")) {
+                descripcion.setLength(descripcion.length() - 2);
+            }
+        }
+
+        erroresSintacticos.add(new ErrorSintactico(
+            lexema, linea, columna, descripcion.toString()
+        ));
+    }
+
+    public void unrecovered_syntax_error(Symbol s) {
+        String lexema = (s != null && s.value != null)
+                ? s.value.toString()
+                : (s != null ? symbl_name_from_id(s.sym) : "EOF");
+
+        erroresSintacticos.add(new ErrorSintactico(
+            lexema,
+            s != null ? s.left  : 0,
+            s != null ? s.right : 0,
+            "Error irrecuperable cerca de '" + lexema + "'"
+        ));
+    }
+
+    public List<ErrorSintactico> getErroresSintacticos() {
+        return erroresSintacticos;
+    }
+:};
+
+/* ======================== TERMINALES ======================== */
+
+// Metadatos
+terminal TRIPLE_HASH;
+
+// Etiquetas de apertura con atributos
+terminal SECTION_OPEN;
+terminal OPEN_TAG;
+terminal DROP_TAG;
+terminal SELECT_TAG;
+terminal MULTIPLE_TAG;
+
+// Etiquetas de estructura
+terminal TABLE_OPEN;
+terminal STYLE_OPEN;
+terminal CONTENT_OPEN;
+terminal LINE_OPEN;
+terminal ELEMENT_OPEN;
+
+// Etiquetas de cierre
+terminal SECTION_CLOSE;
+terminal TABLE_CLOSE;
+terminal OPEN_CLOSE;
+terminal DROP_CLOSE;
+terminal SELECT_CLOSE;
+terminal MULTIPLE_CLOSE;
+terminal STYLE_CLOSE;
+terminal CONTENT_CLOSE;
+terminal LINE_CLOSE;
+terminal ELEMENT_CLOSE;
+
+// Propiedades de estilo
+terminal COLOR_TAG;
+terminal BG_COLOR_TAG;
+terminal FONT_TAG;
+terminal TEXT_SIZE_TAG;
+terminal BORDER_TAG;
+terminal COLOR_ATTR;
+
+// Cierre de etiquetas
+terminal SELF_CLOSE;
+terminal TAG_CLOSE;
+
+// Delimitadores
+terminal COMA;
+terminal LLLAVE;
+terminal RLLAVE;
+terminal LPAREN;
+terminal RPAREN;
+
+// Valores
+terminal String NUMERO;
+terminal String CADENA;
+terminal String HEX_COLOR;
+terminal String HSL_COLOR;
+
+// Colores por nombre
+terminal RED, BLUE, GREEN, YELLOW, BLACK, WHITE, PURPLE, SKY;
+
+// Font families
+terminal MONO, SANS_SERIF, CURSIVE;
+
+// Tipos de borde
+terminal LINE_TYPE, DOTTED, DOUBLE_TYPE;
+
+// Orientacion
+terminal VERTICAL, HORIZONTAL;
+
+/* ======================== NO TERMINALES ======================== */
+
+// Programa completo
+non terminal Nodo2Programa inicio;
+
+// Metadatos
+non terminal metadatos;
+
+// Elementos
+non terminal java.util.List lista_elementos;
+non terminal Nodo2Elemento elemento;
+
+// Sección
+non terminal Nodo2Elemento seccion;
+
+// Tabla
+non terminal Nodo2Elemento tabla;
+non terminal java.util.List lista_lineas;
+non terminal java.util.List linea;
+non terminal java.util.List lista_celdas;
+non terminal Nodo2Elemento celda;
+
+// Preguntas y texto
+non terminal Nodo2Elemento open_elem;
+non terminal Nodo2Elemento drop_elem;
+non terminal Nodo2Elemento select_elem;
+non terminal Nodo2Elemento multiple_elem;
+
+// Opciones
+non terminal java.util.List lista_opciones;
+non terminal java.util.List lista_correctos;
+
+// Estilos
+non terminal Nodo2Estilos bloque_estilos;
+non terminal Nodo2Estilos opt_estilos;
+non terminal Object prop_estilo;
+
+// Colores
+non terminal Nodo2Color color;
+
+// Valores simples
+non terminal String orientacion;
+non terminal String fuente;
+non terminal String tipo_borde;
+
+// Contenido
+non terminal java.util.List bloque_contenido;
+non terminal java.util.List opt_contenido;
+
+non terminal Nodo2Estilos prop_estilos_list;
+
+start with inicio;
+
+/* ======================== PROGRAMA ======================== */
+
+inicio ::= metadatos lista_elementos:elems
+            {: RESULT = new Nodo2Programa(elems); :}
+          | lista_elementos:elems
+            {: RESULT = new Nodo2Programa(elems); :}
+          ;
+
+/* ======================== METADATOS ======================== */
+/* Se ignoran, solo se valida la estructura ### ... ### */
+
+metadatos ::= TRIPLE_HASH TRIPLE_HASH ;
+
+/* ======================== LISTA DE ELEMENTOS ======================== */
+
+lista_elementos ::= elemento:e
+                    {:
+                        java.util.List lista = new java.util.ArrayList<>();
+                        if (e != null) lista.add(e);
+                        RESULT = lista;
+                    :}
+                  | lista_elementos:lista elemento:e
+                    {:
+                        if (e != null) lista.add(e);
+                        RESULT = lista;
+                    :}
+                  ;
+
+elemento ::= seccion:s          {: RESULT = s; :}
+           | tabla:t             {: RESULT = t; :}
+           | open_elem:o         {: RESULT = o; :}
+           | drop_elem:d         {: RESULT = d; :}
+           | select_elem:se      {: RESULT = se; :}
+           | multiple_elem:m     {: RESULT = m; :}
+           ;
+
+/* ===================== SECCION ======================== */
+/* <section=width,height,pointX,pointY,orientation> ... </section> */
+
+seccion ::= SECTION_OPEN NUMERO:w COMA NUMERO:h COMA NUMERO:px COMA NUMERO:py COMA orientacion:ori TAG_CLOSE
+            opt_estilos:est opt_contenido:cont
+            SECTION_CLOSE
+            {:
+                RESULT = new Nodo2Seccion(
+                    Double.parseDouble(w), Double.parseDouble(h),
+                    Double.parseDouble(px), Double.parseDouble(py),
+                    ori, est, cont
+                );
+            :}
+          | SECTION_OPEN NUMERO:w COMA NUMERO:h COMA NUMERO:px COMA NUMERO:py TAG_CLOSE
+            opt_estilos:est opt_contenido:cont
+            SECTION_CLOSE
+            {:
+                RESULT = new Nodo2Seccion(
+                    Double.parseDouble(w), Double.parseDouble(h),
+                    Double.parseDouble(px), Double.parseDouble(py),
+                    "VERTICAL", est, cont
+                );
+            :}
+          ;
+
+orientacion ::= VERTICAL    {: RESULT = "VERTICAL"; :}
+              | HORIZONTAL   {: RESULT = "HORIZONTAL"; :}
+              ;
+
+/* ======================== CONTENIDO OPCIONAL ======================== */
+
+opt_contenido ::= bloque_contenido:c   {: RESULT = c; :}
+                | /* vacío */           {: RESULT = new java.util.ArrayList<>(); :}
+                ;
+
+bloque_contenido ::= CONTENT_OPEN lista_elementos:elems CONTENT_CLOSE
+                     {: RESULT = elems; :}
+                   ;
+
+/* ======================== ESTILOS OPCIONALES ======================== */
+
+opt_estilos ::= bloque_estilos:e   {: RESULT = e; :}
+              | /* vacío */         {: RESULT = null; :}
+              ;
+
+bloque_estilos ::= STYLE_OPEN prop_estilos_list:e STYLE_CLOSE
+                   {: RESULT = e; :}
+                 ;
+
+
+prop_estilos_list ::= /* vacío */
+                      {: RESULT = new Nodo2Estilos(); :}
+                    | prop_estilos_list:est prop_estilo:p
+                      {:
+                          if (p instanceof Object[]) {
+                              Object[] pair = (Object[]) p;
+                              String key = (String) pair[0];
+                              Object val = pair[1];
+                              switch (key) {
+                                  case "color": est.setColor((Nodo2Color) val); break;
+                                  case "bgColor": est.setBgColor((Nodo2Color) val); break;
+                                  case "fontFamily": est.setFontFamily((String) val); break;
+                                  case "textSize": est.setTextSize((Double) val); break;
+                                  case "border": est.setBorde((Nodo2Borde) val); break;
+                              }
+                          }
+                          RESULT = est;
+                      :}
+                    ;
+
+/* ---------- Propiedades individuales de estilo ---------- */
+
+prop_estilo ::= COLOR_TAG color:c SELF_CLOSE
+                {: RESULT = new Object[]{"color", c}; :}
+              | BG_COLOR_TAG color:c SELF_CLOSE
+                {: RESULT = new Object[]{"bgColor", c}; :}
+              | FONT_TAG fuente:f SELF_CLOSE
+                {: RESULT = new Object[]{"fontFamily", f}; :}
+              | TEXT_SIZE_TAG NUMERO:n TAG_CLOSE
+                {: RESULT = new Object[]{"textSize", Double.parseDouble(n)}; :}
+              | TEXT_SIZE_TAG NUMERO:n SELF_CLOSE
+                {: RESULT = new Object[]{"textSize", Double.parseDouble(n)}; :}
+              | BORDER_TAG NUMERO:grosor COMA tipo_borde:tipo COMA COLOR_ATTR color:c SELF_CLOSE
+                {: RESULT = new Object[]{"border", new Nodo2Borde(Double.parseDouble(grosor), tipo, c)}; :}
+              ;
+
+fuente ::= MONO         {: RESULT = "MONO"; :}
+         | SANS_SERIF    {: RESULT = "SANS_SERIF"; :}
+         | CURSIVE       {: RESULT = "CURSIVE"; :}
+         ;
+
+tipo_borde ::= LINE_TYPE    {: RESULT = "LINE"; :}
+             | DOTTED        {: RESULT = "DOTTED"; :}
+             | DOUBLE_TYPE   {: RESULT = "DOUBLE"; :}
+             ;
+
+/* ======================== COLORES ======================== */
+
+color ::= HEX_COLOR:h       {: RESULT = new Nodo2ColorHex(h); :}
+        | HSL_COLOR:h        {: RESULT = new Nodo2ColorHSL(h); :}
+        | LPAREN NUMERO:r COMA NUMERO:g COMA NUMERO:b RPAREN
+          {: RESULT = new Nodo2ColorRGB(Double.parseDouble(r), Double.parseDouble(g), Double.parseDouble(b)); :}
+        | RED                {: RESULT = new Nodo2ColorNombre("RED"); :}
+        | BLUE               {: RESULT = new Nodo2ColorNombre("BLUE"); :}
+        | GREEN              {: RESULT = new Nodo2ColorNombre("GREEN"); :}
+        | YELLOW             {: RESULT = new Nodo2ColorNombre("YELLOW"); :}
+        | BLACK              {: RESULT = new Nodo2ColorNombre("BLACK"); :}
+        | WHITE              {: RESULT = new Nodo2ColorNombre("WHITE"); :}
+        | PURPLE             {: RESULT = new Nodo2ColorNombre("PURPLE"); :}
+        | SKY                {: RESULT = new Nodo2ColorNombre("SKY"); :}
+        ;
+
+/* ======================== TABLA ======================== */
+/* <table> <style>...</style> <content>...</content> </table> */
+
+tabla ::= TABLE_OPEN opt_estilos:est CONTENT_OPEN lista_lineas:lineas CONTENT_CLOSE TABLE_CLOSE
+          {: RESULT = new Nodo2Tabla(est, lineas); :}
+        ;
+
+lista_lineas ::= linea:l
+                 {:
+                     java.util.List lista = new java.util.ArrayList<>();
+                     lista.add(l);
+                     RESULT = lista;
+                 :}
+               | lista_lineas:lista linea:l
+                 {:
+                     lista.add(l);
+                     RESULT = lista;
+                 :}
+               ;
+
+linea ::= LINE_OPEN lista_celdas:celdas LINE_CLOSE
+          {: RESULT = celdas; :}
+        ;
+
+lista_celdas ::= celda:c
+                 {:
+                     java.util.List lista = new java.util.ArrayList<>();
+                     if (c != null) lista.add(c);
+                     RESULT = lista;
+                 :}
+               | lista_celdas:lista celda:c
+                 {:
+                     if (c != null) lista.add(c);
+                     RESULT = lista;
+                 :}
+               ;
+
+celda ::= ELEMENT_OPEN elemento:e ELEMENT_CLOSE
+          {: RESULT = e; :}
+        ;
+
+/* ==================== OPEN (Texto y Pregunta abierta) ======================== */
+/* <open=width,height,"content"/>                                                    */
+/* <open=width,height,"content"> <style>...</style> </open>                          */
+
+open_elem ::= OPEN_TAG NUMERO:w COMA NUMERO:h COMA CADENA:c SELF_CLOSE
+              {:
+                  RESULT = new Nodo2Open(
+                      Double.parseDouble(w), Double.parseDouble(h), c, null
+                  );
+              :}
+            | OPEN_TAG NUMERO:w COMA NUMERO:h COMA CADENA:c TAG_CLOSE
+              bloque_estilos:est OPEN_CLOSE
+              {:
+                  RESULT = new Nodo2Open(
+                      Double.parseDouble(w), Double.parseDouble(h), c, est
+                  );
+              :}
+            ;
+
+/* ======================== DROP_QUESTION ======================== */
+/* <drop=width,height,"label",{"op1","op2"},correct/>             */
+/* <drop=width,height,"label",{"op1","op2"},correct> estilos </drop> */
+
+drop_elem ::= DROP_TAG NUMERO:w COMA NUMERO:h COMA CADENA:label COMA
+              LLLAVE lista_opciones:opts RLLAVE COMA NUMERO:corr SELF_CLOSE
+              {:
+                  RESULT = new Nodo2Drop(
+                      Double.parseDouble(w), Double.parseDouble(h),
+                      label, opts, Double.parseDouble(corr), null
+                  );
+              :}
+            | DROP_TAG NUMERO:w COMA NUMERO:h COMA CADENA:label COMA
+              LLLAVE lista_opciones:opts RLLAVE COMA NUMERO:corr TAG_CLOSE
+              bloque_estilos:est DROP_CLOSE
+              {:
+                  RESULT = new Nodo2Drop(
+                      Double.parseDouble(w), Double.parseDouble(h),
+                      label, opts, Double.parseDouble(corr), est
+                  );
+              :}
+            ;
+
+/* ======================== SELECT_QUESTION ======================== */
+/* <select=width,height,{"op1","op2"},correct/>                     */
+
+select_elem ::= SELECT_TAG NUMERO:w COMA NUMERO:h COMA
+                LLLAVE lista_opciones:opts RLLAVE COMA NUMERO:corr SELF_CLOSE
+                {:
+                    RESULT = new Nodo2Select(
+                        Double.parseDouble(w), Double.parseDouble(h),
+                        opts, Double.parseDouble(corr), null
+                    );
+                :}
+              | SELECT_TAG NUMERO:w COMA NUMERO:h COMA
+                LLLAVE lista_opciones:opts RLLAVE COMA NUMERO:corr TAG_CLOSE
+                bloque_estilos:est SELECT_CLOSE
+                {:
+                    RESULT = new Nodo2Select(
+                        Double.parseDouble(w), Double.parseDouble(h),
+                        opts, Double.parseDouble(corr), est
+                    );
+                :}
+              ;
+
+/* ======================== MULTIPLE_QUESTION ======================== */
+/* <multiple=width,height,{"op1","op2"},{correct1,correct2}/>        */
+
+multiple_elem ::= MULTIPLE_TAG NUMERO:w COMA NUMERO:h COMA
+                  LLLAVE lista_opciones:opts RLLAVE COMA LLLAVE lista_correctos:corrs RLLAVE SELF_CLOSE
+                  {:
+                      RESULT = new Nodo2Multiple(
+                          Double.parseDouble(w), Double.parseDouble(h),
+                          opts, corrs, null
+                      );
+                  :}
+                | MULTIPLE_TAG NUMERO:w COMA NUMERO:h COMA
+                  LLLAVE lista_opciones:opts RLLAVE COMA LLLAVE lista_correctos:corrs RLLAVE TAG_CLOSE
+                  bloque_estilos:est MULTIPLE_CLOSE
+                  {:
+                      RESULT = new Nodo2Multiple(
+                          Double.parseDouble(w), Double.parseDouble(h),
+                          opts, corrs, est
+                      );
+                  :}
+                | MULTIPLE_TAG NUMERO:w COMA NUMERO:h COMA
+                  LLLAVE lista_opciones:opts RLLAVE COMA LLLAVE RLLAVE SELF_CLOSE
+                  {:
+                      RESULT = new Nodo2Multiple(
+                          Double.parseDouble(w), Double.parseDouble(h),
+                          opts, new java.util.ArrayList<>(), null
+                      );
+                  :}
+                ;
+
+/* ======================== LISTAS =================== */
+
+lista_opciones ::= CADENA:s
+                   {:
+                       java.util.List lista = new java.util.ArrayList<>();
+                       lista.add(s);
+                       RESULT = lista;
+                   :}
+                 | lista_opciones:lista COMA CADENA:s
+                   {: lista.add(s); RESULT = lista; :}
+                 ;
+
+lista_correctos ::= NUMERO:n
+                    {:
+                        java.util.List lista = new java.util.ArrayList<>();
+                        lista.add(Double.parseDouble(n));
+                        RESULT = lista;
+                    :}
+                  | lista_correctos:lista COMA NUMERO:n
+                    {: lista.add(Double.parseDouble(n)); RESULT = lista; :}
+                  ;
