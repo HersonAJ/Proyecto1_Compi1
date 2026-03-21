@@ -71,7 +71,7 @@ ESPACIO   = [ \t\r\n\f]
     "<multiple="                                { return symbol(sym2.MULTIPLE_TAG); }
 
     /*****************ETIQUETAS DE ESTRUCTURA***********************/
-    "<table>"                                   { return symbol(sym2.TABLE_OPEN); }
+    "<table="                                   { return symbol(sym2.TABLE_OPEN); }
     "<style>"                                   { return symbol(sym2.STYLE_OPEN); }
     "<content>"                                 { return symbol(sym2.CONTENT_OPEN); }
     "<line>"                                    { return symbol(sym2.LINE_OPEN); }

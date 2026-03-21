@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.example.proyecto1_compi1.ViewModel.FormularioViewModel
+import com.example.proyecto1_compi1.ui.render.FormPreviewContent
 import com.example.proyecto1_compi1.ui.screen.DebugDialog
 
 @Composable
@@ -64,7 +65,13 @@ fun FormCreatorScreen(
                 .weight(1f)
                 .fillMaxWidth()
                 .background(Color.White)
-        )
+        ) {
+            val ast2 by viewModel.ast2.collectAsState()
+
+            if (ast2 != null) {
+                FormPreviewContent(programa = ast2!!, esInteractivo = false)
+            }
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 

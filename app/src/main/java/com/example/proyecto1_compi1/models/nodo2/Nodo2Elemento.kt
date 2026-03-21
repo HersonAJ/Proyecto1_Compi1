@@ -15,6 +15,8 @@ data class Nodo2Seccion(
 
 // <table> ... </table>
 data class Nodo2Tabla(
+    val width: Double,
+    val height: Double,
     val estilos: Nodo2Estilos?,
     val filas: List<List<Nodo2Elemento>>
 ) : Nodo2Elemento()

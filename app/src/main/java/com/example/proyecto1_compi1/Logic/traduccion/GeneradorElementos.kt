@@ -53,8 +53,10 @@ class GeneradorElementos(
         return sb.toString()
     }
     private fun generarTabla(tabla: NodoTabla): String {
+        val w = evalAttr(tabla.atributos["width"])
+        val h = evalAttr(tabla.atributos["height"])
         val sb = StringBuilder()
-        sb.append("<table>\n")
+        sb.append("<table=$w,$h>\n")
 
         if (tabla.estilos != null) {
             sb.append(genEstilos.generar(tabla.estilos))

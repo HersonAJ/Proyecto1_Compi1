@@ -330,8 +330,9 @@ color ::= HEX_COLOR:h       {: RESULT = new Nodo2ColorHex(h); :}
 /* ======================== TABLA ======================== */
 /* <table> <style>...</style> <content>...</content> </table> */
 
-tabla ::= TABLE_OPEN opt_estilos:est CONTENT_OPEN lista_lineas:lineas CONTENT_CLOSE TABLE_CLOSE
-          {: RESULT = new Nodo2Tabla(est, lineas); :}
+tabla ::= TABLE_OPEN NUMERO:w COMA NUMERO:h TAG_CLOSE
+          opt_estilos:est CONTENT_OPEN lista_lineas:lineas CONTENT_CLOSE TABLE_CLOSE
+          {: RESULT = new Nodo2Tabla(Double.parseDouble(w), Double.parseDouble(h), est, lineas); :}
         ;
 
 lista_lineas ::= linea:l
