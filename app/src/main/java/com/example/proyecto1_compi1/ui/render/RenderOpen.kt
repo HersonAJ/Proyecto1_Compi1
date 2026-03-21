@@ -33,7 +33,7 @@ fun RenderOpen(
     ) {
         // Label / contenido de texto
         Text(
-            text = nodo.contenido,
+            text = EmojiConverter.convertir(nodo.contenido),
             color = misEstilos.color,
             fontFamily = misEstilos.fontFamily,
             fontSize = misEstilos.fontSize

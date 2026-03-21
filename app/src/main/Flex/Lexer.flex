@@ -48,8 +48,8 @@ EMOJI_HEART = @\[<+3+\]
 EMOJI_HEART_TXT = @\[:heart:\]
 
 EMOJI_STAR = @\[:star:\]
-EMOJI_STAR_NUM = @\[:star:[0-9]+\]
-EMOJI_STAR_NUM_ALT = @\[:star-[0-9]+\]
+EMOJI_STAR_NUM = @\[:star:[0-9]+:\]
+EMOJI_STAR_NUM_ALT = @\[:star-[0-9]+:\]
 
 EMOJI_CAT = @\[:\^\^:\]
 EMOJI_CAT_TXT = @\[:cat:\]
@@ -263,7 +263,7 @@ private Symbol symbol(int type, Object value) {
         String lex = yytext();
 
         int num = Integer.parseInt(
-            lex.substring(7, lex.length()-2)
+            lex.substring(8, lex.length()-2)
         );
 
         for(int i=0;i<num;i++){
@@ -276,7 +276,7 @@ private Symbol symbol(int type, Object value) {
         String lex = yytext(); // @[:star-3]
 
         int num = Integer.parseInt(
-            lex.substring(7, lex.length()-1)
+            lex.substring(8, lex.length()-1)
         );
 
         for(int i=0;i<num;i++){

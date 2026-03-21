@@ -47,7 +47,7 @@ fun RenderSeleccion(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = opcion,
+                        text = EmojiConverter.convertir(opcion),
                         color = misEstilos.color,
                         fontFamily = misEstilos.fontFamily,
                         fontSize = misEstilos.fontSize
@@ -64,7 +64,7 @@ fun RenderSeleccion(
                     RadioButton(selected = false, onClick = null, enabled = false)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = opcion,
+                        text = EmojiConverter.convertir(opcion),
                         color = misEstilos.color,
                         fontFamily = misEstilos.fontFamily,
                         fontSize = misEstilos.fontSize

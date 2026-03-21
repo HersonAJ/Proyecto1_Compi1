@@ -26,7 +26,7 @@ fun RenderDesplegable(
             .padding(4.dp)
     ) {
         Text(
-            text = nodo.label,
+            text = EmojiConverter.convertir(nodo.label),
             color = misEstilos.color,
             fontFamily = misEstilos.fontFamily,
             fontSize = misEstilos.fontSize
@@ -46,7 +46,7 @@ fun RenderDesplegable(
             var expandido by remember { mutableStateOf(false) }
             val seleccion = estado.getRespuestaIndice(id)
             val textoMostrar = if (seleccion >= 0 && seleccion < nodo.opciones.size) {
-                nodo.opciones[seleccion]
+                EmojiConverter.convertir(nodo.opciones[seleccion])
             } else "Selecciona..."
 
             Box {
@@ -60,7 +60,7 @@ fun RenderDesplegable(
                 ) {
                     nodo.opciones.forEachIndexed { index, opcion ->
                         DropdownMenuItem(
-                            text = { Text(opcion) },
+                            text = { Text(EmojiConverter.convertir(opcion)) },
                             onClick = {
                                 estado.setRespuestaIndice(id, index)
                                 expandido = false
