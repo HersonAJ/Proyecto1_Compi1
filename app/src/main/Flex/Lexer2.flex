@@ -7,7 +7,7 @@ import java.util.List;
 
 %%
 
-
+%public
 %class Lexer2
 %unicode
 %cup

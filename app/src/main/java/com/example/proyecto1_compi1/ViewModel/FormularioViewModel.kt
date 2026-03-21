@@ -4,9 +4,11 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyecto1_compi1.Logic.Analizador1
+import com.example.proyecto1_compi1.Logic.Analizador2
 import com.example.proyecto1_compi1.models.ErrorLexico
 import com.example.proyecto1_compi1.models.ErrorSintactico
 import com.example.proyecto1_compi1.models.ErrorReporte
+import com.example.proyecto1_compi1.models.nodo2.Nodo2Programa
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,21 +31,28 @@ class FormularioViewModel: ViewModel() {
     private val _isAnalizando = MutableStateFlow(false)
     val isAnalizando: StateFlow<Boolean> = _isAnalizando.asStateFlow()
 
-    //debung
-    //salida del generador de código
+    // Debug
     private val _codigoPkm = MutableStateFlow<String?>(null)
     val codigoPkm: StateFlow<String?> = _codigoPkm.asStateFlow()
 
-    //controla si se muestra el debug dialog
     private val _mostrarDebug = MutableStateFlow(false)
     val mostrarDebug: StateFlow<Boolean> = _mostrarDebug.asStateFlow()
 
-    private val analizador = Analizador1()
+    // AST2: resultado del análisis del .pkm (lo usará el Renderer)
+    private val _ast2 = MutableStateFlow<Nodo2Programa?>(null)
+    val ast2: StateFlow<Nodo2Programa?> = _ast2.asStateFlow()
+
+    private val analizador1 = Analizador1()
+    private val analizador2 = Analizador2()
 
     fun actualizarCodigo(nuevoCodigo: TextFieldValue) {
         _codigo.value = nuevoCodigo
     }
 
+    /**
+     * Flujo 1: Compilar desde el editor
+     * código .form -> Analizador1 -> String .pkm -> Analizador2 -> AST2
+     */
     fun analizarCodigo() {
         viewModelScope.launch {
 
@@ -52,66 +61,119 @@ class FormularioViewModel: ViewModel() {
             _erroresSintacticos.value = emptyList()
             _reporteErrores.value = emptyList()
             _codigoPkm.value = null
+            _ast2.value = null
 
             val resultado = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                val pkm = analizador.analizar(_codigo.value.text)
-                Triple(
-                    analizador.getErroresLexicos(),
-                    analizador.getErroresSintacticos(),
-                    pkm
-                )
+
+                // ===== FASE 1: Lenguaje 1 -> String .pkm =====
+                val pkm = analizador1.analizar(_codigo.value.text)
+
+                // ===== FASE 2: String .pkm -> AST2 =====
+                var ast2Result: Nodo2Programa? = null
+                if (pkm != null) {
+                    ast2Result = analizador2.analizar(pkm)
+                }
+
+                object {
+                    val lexicos1 = analizador1.getErroresLexicos()
+                    val sintacticos1 = analizador1.getErroresSintacticos()
+                    val semanticos1 = analizador1.getErroresSemanticos()
+                    val lexicos2 = analizador2.getErroresLexicos()
+                    val sintacticos2 = analizador2.getErroresSintacticos()
+                    val pkm = pkm
+                    val ast2 = ast2Result
+                }
             }
 
-            val lexicos = resultado.first
-            val sintacticos = resultado.second
-            _codigoPkm.value = resultado.third
-
-            _erroresLexicos.value = lexicos
-            _erroresSintacticos.value = sintacticos
+            _codigoPkm.value = resultado.pkm
+            _ast2.value = resultado.ast2
 
             val reporte = mutableListOf<ErrorReporte>()
 
-            for (error in lexicos) {
-                reporte.add(
-                    ErrorReporte(
-                        lexema = error.lexema,
-                        linea = error.linea,
-                        columna = error.columna,
-                        tipo = "Lexico",
-                        descripcion = error.descripcion
-                    )
-                )
+            // Errores del Lenguaje 1
+            for (error in resultado.lexicos1) {
+                reporte.add(ErrorReporte(
+                    lexema = error.lexema, linea = error.linea,
+                    columna = error.columna, tipo = "Lexico L1",
+                    descripcion = error.descripcion
+                ))
+            }
+            for (error in resultado.sintacticos1) {
+                reporte.add(ErrorReporte(
+                    lexema = error.lexema, linea = error.linea,
+                    columna = error.columna, tipo = "Sintactico L1",
+                    descripcion = error.descripcion
+                ))
+            }
+            for (error in resultado.semanticos1) {
+                reporte.add(ErrorReporte(
+                    lexema = "", linea = 0, columna = 0,
+                    tipo = "Semantico L1", descripcion = error
+                ))
             }
 
-            for (error in sintacticos) {
-                reporte.add(
-                    ErrorReporte(
-                        lexema = error.lexema,
-                        linea = error.linea,
-                        columna = error.columna,
-                        tipo = "Sintactico",
-                        descripcion = error.descripcion
-                    )
-                )
+            // Errores del Lenguaje 2 (si los hay)
+            for (error in resultado.lexicos2) {
+                reporte.add(ErrorReporte(
+                    lexema = error.lexema, linea = error.linea,
+                    columna = error.columna, tipo = "Lexico L2",
+                    descripcion = error.descripcion
+                ))
             }
-
-            //errores semánticos al reporte
-            for (error in analizador.getErroresSemanticos()) {
-                reporte.add(
-                    ErrorReporte(
-                        lexema = "",
-                        linea = 0,
-                        columna = 0,
-                        tipo = "Semantico",
-                        descripcion = error
-                    )
-                )
+            for (error in resultado.sintacticos2) {
+                reporte.add(ErrorReporte(
+                    lexema = error.lexema, linea = error.linea,
+                    columna = error.columna, tipo = "Sintactico L2",
+                    descripcion = error.descripcion
+                ))
             }
 
             _reporteErrores.value = reporte
             _isAnalizando.value = false
+            _mostrarDebug.value = true
+        }
+    }
 
-            // Mostrar debug automáticamente despues de compilar
+    /**
+     * Flujo 2: Cargar archivo .pkm directamente
+     * String .pkm -> Analizador2 → AST2
+     */
+    fun cargarPkm(contenidoPkm: String) {
+        viewModelScope.launch {
+            _isAnalizando.value = true
+            _reporteErrores.value = emptyList()
+            _ast2.value = null
+
+            val resultado = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                val ast = analizador2.analizar(contenidoPkm)
+                object {
+                    val ast2 = ast
+                    val lexicos = analizador2.getErroresLexicos()
+                    val sintacticos = analizador2.getErroresSintacticos()
+                }
+            }
+
+            _ast2.value = resultado.ast2
+            _codigoPkm.value = contenidoPkm
+
+            val reporte = mutableListOf<ErrorReporte>()
+            for (error in resultado.lexicos) {
+                reporte.add(ErrorReporte(
+                    lexema = error.lexema, linea = error.linea,
+                    columna = error.columna, tipo = "Lexico PKM",
+                    descripcion = error.descripcion
+                ))
+            }
+            for (error in resultado.sintacticos) {
+                reporte.add(ErrorReporte(
+                    lexema = error.lexema, linea = error.linea,
+                    columna = error.columna, tipo = "Sintactico PKM",
+                    descripcion = error.descripcion
+                ))
+            }
+
+            _reporteErrores.value = reporte
+            _isAnalizando.value = false
             _mostrarDebug.value = true
         }
     }
@@ -125,5 +187,6 @@ class FormularioViewModel: ViewModel() {
         _erroresSintacticos.value = emptyList()
         _reporteErrores.value = emptyList()
         _codigoPkm.value = null
+        _ast2.value = null
     }
 }

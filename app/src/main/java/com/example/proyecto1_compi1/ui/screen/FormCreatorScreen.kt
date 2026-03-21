@@ -28,6 +28,7 @@ fun FormCreatorScreen(
     val codigo by viewModel.codigo.collectAsState()
     val isAnalizando by viewModel.isAnalizando.collectAsState()
     val errores by viewModel.reporteErrores.collectAsState()
+    val ast2 by viewModel.ast2.collectAsState()
 
     //estados para el debug dialog
     val mostrarDebug by viewModel.mostrarDebug.collectAsState()
@@ -46,6 +47,7 @@ fun FormCreatorScreen(
         DebugDialog(
             codigoPkm = codigoPkm,
             errores = errores,
+            ast2Exitoso = ast2 != null,
             onDismiss = { viewModel.cerrarDebug() }
         )
     }

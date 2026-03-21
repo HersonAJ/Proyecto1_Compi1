@@ -20,13 +20,14 @@ import com.example.proyecto1_compi1.models.ErrorReporte
 fun DebugDialog(
     codigoPkm: String?,
     errores: List<ErrorReporte>,
+    ast2Exitoso: Boolean = false,
     onDismiss: () -> Unit
 ) {
     val clipboardManager = LocalClipboardManager.current
     val scrollState = rememberScrollState()
     val horizontalScroll = rememberScrollState()
 
-    val textoDebug = remember(codigoPkm, errores) {
+    val textoDebug = remember(codigoPkm, errores, ast2Exitoso) {
         buildString {
             if (errores.isNotEmpty()) {
                 append("========== ERRORES (${errores.size}) ==========\n\n")
@@ -38,11 +39,18 @@ fun DebugDialog(
                 append("========== SIN ERRORES ==========\n\n")
             }
 
-            append("========== CÓDIGO .PKM GENERADO ==========\n\n")
+            append("========== ANALISIS L2 ==========\n\n")
+            if (ast2Exitoso) {
+                append("AST2 construido exitosamente \n\n")
+            } else {
+                append("AST2 no se construyo \n\n")
+            }
+
+            append("========== CODIGO .PKM GENERADO ==========\n\n")
             if (codigoPkm != null) {
                 append(codigoPkm)
             } else {
-                append("(null - no se generó código)")
+                append("(null - no se genero codigo)")
             }
         }
     }

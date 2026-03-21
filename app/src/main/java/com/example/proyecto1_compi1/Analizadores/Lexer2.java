@@ -11,7 +11,7 @@ import java.util.List;
 
 
 @SuppressWarnings("fallthrough")
-class Lexer2 implements java_cup.runtime.Scanner {
+public class Lexer2 implements java_cup.runtime.Scanner {
 
   /** This character denotes the end of file. */
   public static final int YYEOF = -1;
@@ -456,7 +456,7 @@ class Lexer2 implements java_cup.runtime.Scanner {
    *
    * @param   in  the java.io.Reader to read input from.
    */
-  Lexer2(java.io.Reader in) {
+  public Lexer2(java.io.Reader in) {
     this.zzReader = in;
   }
 
