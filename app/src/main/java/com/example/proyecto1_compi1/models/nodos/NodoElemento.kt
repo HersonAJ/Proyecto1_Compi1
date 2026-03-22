@@ -3,9 +3,7 @@ package com.example.proyecto1_compi1.models.nodos
 
 // Nodo raiz del programa completo
 data class NodoPrograma(
-    val declaraciones: List<NodoInstruccion>,
-    val secciones: List<NodoElemento>,
-    val instrucciones: List<NodoInstruccion>
+    val items: List<Any>
 )
 
 sealed class NodoElemento

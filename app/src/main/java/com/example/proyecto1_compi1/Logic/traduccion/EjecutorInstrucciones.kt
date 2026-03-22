@@ -16,14 +16,16 @@ class EjecutorInstrucciones(
     }
 
     // Ejecuta un bloque de instrucciones Retorna los strings .pkm generados por draw()
-    fun ejecutarBloque(instrucciones: List<NodoInstruccion>): List<String> {
+    fun ejecutarBloque(instrucciones: List<Any>): List<String> {
         val resultado = mutableListOf<String>()
-        for (inst in instrucciones) {
-            resultado.addAll(ejecutar(inst))
+        for (item in instrucciones) {
+            when (item) {
+                is NodoInstruccion -> resultado.addAll(ejecutar(item))
+                is NodoElemento -> resultado.add(genElementos.generar(item))
+            }
         }
         return resultado
     }
-
     private fun ejecutar(inst: NodoInstruccion): List<String> {
         return when (inst) {
             is NodoDeclaracion -> { procesarDeclaracion(inst); emptyList() }
@@ -40,16 +42,7 @@ class EjecutorInstrucciones(
 
     // ======================== ASIGNACION / DECLARACION ========================
 
-    private fun procesarDeclaracion(decl: NodoDeclaracion) {
-        if (decl.tipo == "special") {
-            tabla.declarar(decl.nombre, "special", decl.valor)
-        } else {
-            val valor = if (decl.valor is NodoExpresion) {
-                evaluador.evaluar(decl.valor as NodoExpresion)
-            } else null
-            tabla.declarar(decl.nombre, decl.tipo, valor)
-        }
-    }
+
 
     private fun procesarAsignacion(asig: NodoAsignacion) {
         val valor = evaluador.evaluar(asig.valor)
@@ -196,5 +189,30 @@ class EjecutorInstrucciones(
 
         evaluador.resetComodines()
         return listOf(pkm)
+    }
+
+    private fun procesarDeclaracion(decl: NodoDeclaracion) {
+        if (decl.tipo == "special") {
+            if (tabla.existe(decl.nombre)) {
+                tabla.asignar(decl.nombre, decl.valor)
+            } else {
+                tabla.declarar(decl.nombre, "special", decl.valor)
+            }
+        } else {
+            val valor = if (decl.valor is NodoExpresion) {
+                evaluador.evaluar(decl.valor as NodoExpresion)
+            } else null
+
+            if (tabla.existe(decl.nombre)) {
+                // Ya existe: reasignar si es mismo tipo
+                if (tabla.obtenerTipo(decl.nombre) == decl.tipo) {
+                    tabla.asignar(decl.nombre, valor)
+                } else {
+                    errores.add("Variable '${decl.nombre}' ya fue declarada con tipo ${tabla.obtenerTipo(decl.nombre)}.")
+                }
+            } else {
+                tabla.declarar(decl.nombre, decl.tipo, valor)
+            }
+        }
     }
 }

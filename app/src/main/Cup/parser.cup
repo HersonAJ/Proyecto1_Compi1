@@ -19,10 +19,10 @@ public void syntax_error(Symbol s) {
     int columna = (s != null) ? s.right : 0;
 
     StringBuilder descripcion = new StringBuilder();
-    descripcion.append("Se encontró '").append(lexema).append("'. ");
+    descripcion.append("Se encontro '").append(lexema).append("'. ");
 
     if (expected_token_ids().isEmpty()) {
-        descripcion.append("No se esperaba ningún símbolo.");
+        descripcion.append("No se esperaba ningun simbolo.");
     } else {
         descripcion.append("Se esperaba: ");
         for (Integer id : expected_token_ids()) {
@@ -36,13 +36,10 @@ public void syntax_error(Symbol s) {
         }
     }
 
-    erroresSintacticos.add(new ErrorSintactico(
-        lexema,
-        linea,
-        columna,
-        descripcion.toString()
-    ));
-}
+        erroresSintacticos.add(new ErrorSintactico(
+            lexema, linea, columna, descripcion.toString()
+        ));
+    }
 
 public void unrecovered_syntax_error(Symbol s) {
     String lexema = (s != null && s.value != null)
@@ -71,78 +68,99 @@ public void unrecovered_syntax_error(Symbol s) {
             (NodoBorde) attrs.get("border")
         );
     }
-
 :};
 
 //terminales
-terminal SECTION;
-terminal TEXT;
-terminal NUMBER_TYPE, NUMBER_PK;
-terminal STRING_TYPE;
-terminal SPECIAL;
+// Palabras reservadas - Elementos
+terminal SECTION, TABLE, TEXT, LINE;
 terminal OPEN_QUESTION, SELECT_QUESTION, MULTIPLE_QUESTION, DROP_QUESTION;
+
+// Palabras reservadas - Tipos de datos
+terminal NUMBER_TYPE, NUMBER_PK, STRING_TYPE, SPECIAL;
+
+// Palabras reservadas - Orientacion
 terminal HORIZONTAL, VERTICAL;
-terminal WIDTH, HEIGHT, POINTX, POINTY, ORIENTATION, ELEMENTS, OPTIONS, CORRECT, CONTENT, LABEL;
+
+// Palabras reservadas - Atributos
+terminal WIDTH, HEIGHT, POINTX, POINTY, ORIENTATION;
+terminal ELEMENTS, OPTIONS, CORRECT, CONTENT, LABEL;
+
+// Palabras reservadas - Estilos
 terminal STYLES, COLOR, BACKGROUND_COLOR, FONT_FAMILY, TEXT_SIZE, BORDER;
+
+// Palabras reservadas - Colores
 terminal HEX_COLOR, RGB_COLOR, HSL_COLOR;
 terminal RED, BLUE, GREEN, YELLOW, BLACK, WHITE, PURPLE, SKY;
+
+// Palabras reservadas - Fuentes
 terminal SANS_SERIF, MONO, CURSIVE;
-terminal LINE;
-terminal TABLE;
+
+// Palabras reservadas - Tipos de borde y linea
 terminal DOTTED, DOUBLE;
+
+// Palabras reservadas - Control de flujo
 terminal WHILE, FOR, ELSE, IF, DO, IN;
+
+// Palabras reservadas - Funciones especiales
+terminal DRAW, POKEMON, COMODIN;
+
+// Literales
 terminal String CADENA;
 terminal String NUMERO;
 terminal ID;
+
+// Operadores aritmeticos
 terminal SUMA, RESTA, MULTI, DIV, POTENCIA, MOD;
+
+// Operadores de comparacion
 terminal MAYOR, MENOR, MAYOR_IGUAL, MENOR_IGUAL, IGUAL, DIFERENTE;
+
+// Operadores logicos
 terminal AND, OR, NOT;
-terminal LPAREN;
-terminal RPAREN;
-terminal RCORCHETE;
-terminal LCORCHETE;
+
+// Delimitadores
+terminal LPAREN, RPAREN;
+terminal LCORCHETE, RCORCHETE;
 terminal LLLAVE, RLLAVE;
-terminal COMA;
-terminal DOS_PUNTOS;
-terminal PUNTO_COMA;
-terminal PUNTO;
+terminal COMA, DOS_PUNTOS, PUNTO_COMA, PUNTO;
 terminal ASIGNACION, RANGO;
-terminal DRAW, POKEMON, COMODIN;
 
 //no terminales
 
-//programa
+// Programa - estructura principal
 non terminal NodoPrograma inicio;
-non terminal java.util.List formulario;
-non terminal java.util.List secciones;
-non terminal java.util.List declaraciones;
+non terminal java.util.List lista_items;
+non terminal Object item;
 
-//expresiones
+// Expresiones
 non terminal NodoExpresion expresion;
+non terminal NodoExpresion exp_or;
+non terminal NodoExpresion exp_and;
 non terminal NodoExpresion exp_relacional;
 non terminal NodoExpresion exp_aritmetica;
 non terminal NodoExpresion exp_term;
 non terminal NodoExpresion exp_factor;
-non terminal NodoExpresion exp_or;
-non terminal NodoExpresion exp_and;
 non terminal NodoExpresion exp_potencia;
 non terminal NodoExpresion exp_mod;
 non terminal NodoExpresion exp_primaria;
 
-//instrucciones
+// Declaraciones y asignaciones
 non terminal NodoInstruccion declaracion;
 non terminal NodoAsignacion asignacion;
-non terminal NodoInstruccion sentencia;
+
+// Instrucciones y bloques de codigo
+non terminal Object sentencia;
+non terminal Object item_codigo;
+non terminal java.util.List bloque_codigo;
 non terminal NodoInstruccion if_stmt;
+non terminal NodoInstruccion else_parte;
 non terminal NodoInstruccion while_stmt;
 non terminal NodoInstruccion for_stmt;
 non terminal NodoInstruccion do_while_stmt;
 non terminal NodoInstruccion draw_stmt;
-non terminal NodoInstruccion else_parte;
-non terminal java.util.List bloque_codigo;
 non terminal java.util.List lista_args;
 
-//elementos con atributos
+// Elementos visuales
 non terminal NodoElemento seccion;
 non terminal NodoElemento tabla;
 non terminal NodoElemento texto;
@@ -151,28 +169,38 @@ non terminal NodoElemento pregunta_special;
 non terminal NodoElemento elemento;
 non terminal NodoElemento celda;
 
-//atributos
+// Atributos de seccion
 non terminal Atributos atributo;
 non terminal Atributos lista_atributos;
+
+// Atributos de estilos
 non terminal Atributos estilo;
 non terminal Atributos lista_estilos;
+
+// Atributos de texto
 non terminal Atributos atributo_texto;
 non terminal Atributos lista_atributos_texto;
+
+// Atributos de preguntas
 non terminal Atributos atributo_pregunta;
 non terminal Atributos lista_atributos_pregunta;
+
+// Atributos de tabla
 non terminal Atributos atributo_tabla;
 non terminal Atributos lista_atributos_tabla;
+
+// Atributos de linea
 non terminal Atributos atributo_linea;
 non terminal Atributos lista_atributos_linea;
 
-//elementos simples
+// Valores simples
 non terminal NodoColor color;
 non terminal String fuente;
 non terminal String orientacion;
 non terminal String tipo_borde;
 non terminal String tipo_linea;
 
-//listas
+// Listas de elementos
 non terminal java.util.List lista_elementos;
 non terminal java.util.List lista_opciones;
 non terminal java.util.List lista_correctos;
@@ -185,38 +213,42 @@ start with inicio;
 
 /* ======================== INICIO ======================== */
 
-inicio ::= declaraciones:decl formulario:form bloque_codigo:codigo
-           {: RESULT = new NodoPrograma(decl, form, codigo); :}
-         | formulario:form bloque_codigo:codigo
-           {: RESULT = new NodoPrograma(new java.util.ArrayList<>(), form, codigo); :}
-         | declaraciones:decl formulario:form
-           {: RESULT = new NodoPrograma(decl, form, new java.util.ArrayList<>()); :}
-         | declaraciones:decl bloque_codigo:codigo
-           {: RESULT = new NodoPrograma(decl, new java.util.ArrayList<>(), codigo); :}
-         | formulario:form
-           {: RESULT = new NodoPrograma(new java.util.ArrayList<>(), form, new java.util.ArrayList<>()); :}
-         | bloque_codigo:codigo
-           {: RESULT = new NodoPrograma(new java.util.ArrayList<>(), new java.util.ArrayList<>(), codigo); :}
-         | declaraciones:decl
-           {: RESULT = new NodoPrograma(decl, new java.util.ArrayList<>(), new java.util.ArrayList<>()); :}
-         ;
+inicio ::= lista_items:items
+            {: RESULT = new NodoPrograma(items); :}
+          ;
 
-/* ======================== FORMULARIO / SECCIONES ======================== */
+lista_items ::= item:i
+                {:
+                    java.util.List lista = new java.util.ArrayList<>();
+                    if (i != null) lista.add(i);
+                    RESULT = lista;
+                :}
+              | lista_items:lista item:i
+                {:
+                    if (i != null) lista.add(i);
+                    RESULT = lista;
+                :}
+              | error item:i
+                {:
+                    java.util.List lista = new java.util.ArrayList<>();
+                    if (i != null) lista.add(i);
+                    RESULT = lista;
+                :}
+              | lista_items:lista error item:i
+                {:
+                    if (i != null) lista.add(i);
+                    RESULT = lista;
+                :}
+              ;
 
-formulario ::= secciones:s {: RESULT = s; :} ;
+item ::= declaracion:d    {: RESULT = d; :}
+       | seccion:s         {: RESULT = s; :}
+       | sentencia:st      {: RESULT = st; :}
+       ;
 
-secciones ::= seccion:s
-              {:
-                  java.util.List lista = new java.util.ArrayList<>();
-                  if (s != null) lista.add(s);
-                  RESULT = lista;
-              :}
-            | secciones:lista seccion:s
-              {:
-                  if (s != null) lista.add(s);
-                  RESULT = lista;
-              :}
-            ;
+/* ================================================================
+   SECTION [ atributos ]
+   ================================================================ */
 
 seccion ::= SECTION LCORCHETE lista_atributos:attrs RCORCHETE
             {:
@@ -228,7 +260,10 @@ seccion ::= SECTION LCORCHETE lista_atributos:attrs RCORCHETE
             {: RESULT = null; :}
           ;
 
-/* ======================== ATRIBUTOS DE SECCION ======================== */
+/* ================================================================
+   ATRIBUTOS DE SECCIÓN
+   width, height, pointX, pointY, orientation, styles, elements
+   ================================================================ */
 
 lista_atributos ::= atributo:a
                     {: RESULT = a; :}
@@ -256,7 +291,10 @@ orientacion ::= HORIZONTAL {: RESULT = "HORIZONTAL"; :}
               | VERTICAL   {: RESULT = "VERTICAL"; :}
               ;
 
-/* ======================== ESTILOS ======================== */
+/* ================================================================
+   ESTILOS
+   "color", "background color", "font family", "text size", "border"
+   ================================================================ */
 
 lista_estilos ::= estilo:e
                   {: RESULT = e; :}
@@ -281,7 +319,10 @@ tipo_borde ::= LINE   {: RESULT = "LINE"; :}
              | DOUBLE  {: RESULT = "DOUBLE"; :}
              ;
 
-/* ======================== COLORES ======================== */
+/* ================================================================
+   COLORES
+   Hex (#FFFFFF), HSL (<h,s,l>), RGB (r,g,b), nombres predefinidos
+   ================================================================ */
 
 color ::= HEX_COLOR:h
           {: RESULT = new NodoColorHex(h.toString()); :}
@@ -304,7 +345,10 @@ fuente ::= MONO       {: RESULT = "MONO"; :}
          | CURSIVE     {: RESULT = "CURSIVE"; :}
          ;
 
-/* ======================== EXPRESIONES ======================== */
+/* ================================================================
+   EXPRESIONES
+   Precedencia (menor a mayor): ||, &&, relacionales, +/-, *|/, unarios, ^, %, primaria
+   ================================================================ */
 
 expresion ::= exp_or:e
               {: RESULT = e; :}
@@ -388,31 +432,10 @@ exp_primaria ::= NUMERO:n
                  {: RESULT = NodoComodin.INSTANCE; :}
                ;
 
-/* ======================== DECLARACIONES ======================== */
-
-declaraciones ::= declaracion:d
-                  {:
-                      java.util.List lista = new java.util.ArrayList<>();
-                      if (d != null) lista.add(d);
-                      RESULT = lista;
-                  :}
-                | declaraciones:lista declaracion:d
-                  {:
-                      if (d != null) lista.add(d);
-                      RESULT = lista;
-                  :}
-                | error declaracion:d
-                  {:
-                      java.util.List lista = new java.util.ArrayList<>();
-                      if (d != null) lista.add(d);
-                      RESULT = lista;
-                  :}
-                | declaraciones:lista error declaracion:d
-                  {:
-                      if (d != null) lista.add(d);
-                      RESULT = lista;
-                  :}
-                ;
+/* ================================================================
+   DECLARACIONES Y ASIGNACIONES
+   number, string, special + asignacion
+   ================================================================ */
 
 declaracion ::= NUMBER_TYPE ID:id
                 {: RESULT = new NodoDeclaracion("number", id.toString(), null); :}
@@ -430,7 +453,10 @@ asignacion ::= ID:id ASIGNACION expresion:e
                {: RESULT = new NodoAsignacion(id.toString(), e); :}
                ;
 
-/* ======================== ELEMENTOS ======================== */
+/* ================================================================
+   ELEMENTOS VISUALES
+   Contenido dentro de secciones y tablas: texto, pregunta, tabla, seccion, linea
+   ================================================================ */
 
 lista_elementos ::= elemento:e
                     {:
@@ -456,7 +482,10 @@ elemento ::= texto:t       {: RESULT = t; :}
            | linea          {: RESULT = null; :}
            ;
 
-/* ======================== TEXTO ======================== */
+/* ================================================================
+   TEXTO
+   TEXT [ content, width, height, styles ]
+   ================================================================ */
 
 texto ::= TEXT LCORCHETE lista_atributos_texto:attrs RCORCHETE
           {:
@@ -486,7 +515,10 @@ atributo_texto ::= CONTENT DOS_PUNTOS CADENA:s
                    {: Atributos a = new Atributos(); a.put("styles", estilos); RESULT = a; :}
                  ;
 
-/* ======================== PREGUNTAS ======================== */
+/* ================================================================
+   PREGUNTAS
+   OPEN_QUESTION, DROP_QUESTION, SELECT_QUESTION, MULTIPLE_QUESTION
+   ================================================================ */
 
 pregunta ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
              {:
@@ -585,7 +617,61 @@ lista_correctos ::= expresion:e
                     {: lista.add(e); RESULT = lista; :}
                   ;
 
-/* ======================== TABLA ======================== */
+/* ================================================================
+   PREGUNTA SPECIAL
+   Se usa en la declaracion: special id = PREGUNTA [ ... ]
+   ================================================================ */
+
+pregunta_special ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+                     {:
+                         RESULT = new NodoPreguntaAbierta(
+                             attrs.getExpresion("label"),
+                             attrs.getExpresion("width"),
+                             attrs.getExpresion("height"),
+                             buildEstilos(attrs.getEstilosMap("styles"))
+                         );
+                     :}
+                   | DROP_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+                     {:
+                         RESULT = new NodoPreguntaDesplegable(
+                             attrs.getExpresion("label"),
+                             attrs.getExpresion("width"),
+                             attrs.getExpresion("height"),
+                             attrs.getListaExpresiones("options"),
+                             attrs.getExpresion("correct"),
+                             buildEstilos(attrs.getEstilosMap("styles"))
+                         );
+                     :}
+                   | SELECT_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+                     {:
+                         RESULT = new NodoPreguntaSeleccion(
+                             attrs.getExpresion("width"),
+                             attrs.getExpresion("height"),
+                             attrs.getListaExpresiones("options"),
+                             attrs.getExpresion("correct"),
+                             buildEstilos(attrs.getEstilosMap("styles"))
+                         );
+                     :}
+                   | MULTIPLE_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
+                     {:
+                         RESULT = new NodoPreguntaMultiple(
+                             attrs.getExpresion("width"),
+                             attrs.getExpresion("height"),
+                             attrs.getListaExpresiones("options"),
+                             attrs.getListaExpresiones("correctList"),
+                             buildEstilos(attrs.getEstilosMap("styles"))
+                         );
+                     :}
+                   | OPEN_QUESTION LCORCHETE error RCORCHETE        {: RESULT = null; :}
+                   | DROP_QUESTION LCORCHETE error RCORCHETE        {: RESULT = null; :}
+                   | SELECT_QUESTION LCORCHETE error RCORCHETE      {: RESULT = null; :}
+                   | MULTIPLE_QUESTION LCORCHETE error RCORCHETE    {: RESULT = null; :}
+                   ;
+
+/* ================================================================
+   TABLA
+   TABLE [ width, height, pointX, pointY, elements, styles ]
+   ================================================================ */
 
 tabla ::= TABLE LCORCHETE lista_atributos_tabla:attrs RCORCHETE
           {:
@@ -648,113 +734,10 @@ celda ::= LLLAVE elemento:e RLLAVE
           {: RESULT = e; :}
           ;
 
-/* ======================== BLOQUE DE CODIGO ======================== */
-
-bloque_codigo ::= sentencia:s
-                  {:
-                     java.util.List lista = new java.util.ArrayList<>();
-                     if (s != null) lista.add(s);
-                     RESULT = lista;
-                  :}
-                | bloque_codigo:lista sentencia:s
-                  {:
-                     if (s != null) lista.add(s);
-                     RESULT = lista;
-                  :}
-                | error sentencia:s
-                  {:
-                     java.util.List lista = new java.util.ArrayList<>();
-                     if (s != null) lista.add(s);
-                     RESULT = lista;
-                  :}
-                | bloque_codigo:lista error sentencia:s
-                  {:
-                     if (s != null) lista.add(s);
-                     RESULT = lista;
-                  :}
-                ;
-
-sentencia ::= asignacion:a
-              {: RESULT = a; :}
-            | if_stmt:i
-              {: RESULT = i; :}
-            | while_stmt:w
-              {: RESULT = w; :}
-            | for_stmt:f
-              {: RESULT = f; :}
-            | do_while_stmt:dw
-              {: RESULT = dw; :}
-            | draw_stmt:dr
-              {: RESULT = dr; :}
-            ;
-
-/* ======================== IF / ELSE ======================== */
-
-else_parte ::= /* vacío */
-               {: RESULT = null; :}
-             | ELSE LLLAVE bloque_codigo:cuerpo RLLAVE
-               {: RESULT = new NodoElse(cuerpo); :}
-             | ELSE IF LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE else_parte:ep
-               {: RESULT = new NodoIf(cond, cuerpo, ep); :}
-             ;
-
-if_stmt ::= IF LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE else_parte:ep
-            {: RESULT = new NodoIf(cond, cuerpo, ep); :}
-          | IF LPAREN error RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE else_parte:ep
-            {: RESULT = null; :}
-          | IF LPAREN expresion:cond RPAREN LLLAVE error RLLAVE
-            {: RESULT = null; :}
-          ;
-
-/* ======================== WHILE ======================== */
-
-while_stmt ::= WHILE LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
-               {: RESULT = new NodoWhile(cond, cuerpo); :}
-             | WHILE LPAREN error RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
-               {: RESULT = null; :}
-             | WHILE LPAREN expresion:cond RPAREN LLLAVE error RLLAVE
-               {: RESULT = null; :}
-             ;
-
-/* ======================== FOR ======================== */
-
-for_stmt ::= FOR LPAREN asignacion:inicializacion PUNTO_COMA expresion:cond PUNTO_COMA asignacion:act RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
-             {: RESULT = new NodoFor(inicializacion, cond, act, cuerpo); :}
-           | FOR LPAREN ID:id IN expresion:ini RANGO expresion:fin RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
-             {: RESULT = new NodoForRango(id.toString(), ini, fin, cuerpo); :}
-           | FOR LPAREN error RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
-             {: RESULT = null; :}
-           | FOR LPAREN error RPAREN LLLAVE error RLLAVE
-             {: RESULT = null; :}
-           ;
-
-/* ======================== DO-WHILE ======================== */
-
-do_while_stmt ::= DO LLLAVE bloque_codigo:cuerpo RLLAVE WHILE LPAREN expresion:cond RPAREN
-                  {: RESULT = new NodoDoWhile(cuerpo, cond); :}
-                | DO LLLAVE error RLLAVE WHILE LPAREN expresion:cond RPAREN
-                  {: RESULT = null; :}
-                ;
-
-/* ======================== DRAW ======================== */
-
-draw_stmt ::= ID:id PUNTO DRAW LPAREN lista_args:args RPAREN
-              {: RESULT = new NodoDraw(id.toString(), args); :}
-              ;
-
-lista_args ::= /* vacío */
-               {: RESULT = new java.util.ArrayList<>(); :}
-             | expresion:e
-               {:
-                  java.util.List lista = new java.util.ArrayList<>();
-                  lista.add(e);
-                  RESULT = lista;
-               :}
-             | lista_args:lista COMA expresion:e
-               {: lista.add(e); RESULT = lista; :}
-             ;
-
-/* ======================== LINEA ======================== */
+/* ================================================================
+   LINEA
+   LINE [ width, pointX, pointY, tipo ]
+   ================================================================ */
 
 linea ::= LINE LCORCHETE lista_atributos_linea:attrs RCORCHETE ;
 
@@ -778,50 +761,132 @@ tipo_linea ::= DOTTED  {: RESULT = "DOTTED"; :}
              | DOUBLE  {: RESULT = "DOUBLE"; :}
              ;
 
-/* ======================== PREGUNTA SPECIAL ======================== */
+/* ================================================================
+   BLOQUE DE CODIGO
+   Acepta sentencias, declaraciones y secciones dentro de { }
+   ================================================================ */
 
-pregunta_special ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
-                     {:
-                         RESULT = new NodoPreguntaAbierta(
-                             attrs.getExpresion("label"),
-                             attrs.getExpresion("width"),
-                             attrs.getExpresion("height"),
-                             buildEstilos(attrs.getEstilosMap("styles"))
-                         );
-                     :}
-                   | DROP_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
-                     {:
-                         RESULT = new NodoPreguntaDesplegable(
-                             attrs.getExpresion("label"),
-                             attrs.getExpresion("width"),
-                             attrs.getExpresion("height"),
-                             attrs.getListaExpresiones("options"),
-                             attrs.getExpresion("correct"),
-                             buildEstilos(attrs.getEstilosMap("styles"))
-                         );
-                     :}
-                   | SELECT_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
-                     {:
-                         RESULT = new NodoPreguntaSeleccion(
-                             attrs.getExpresion("width"),
-                             attrs.getExpresion("height"),
-                             attrs.getListaExpresiones("options"),
-                             attrs.getExpresion("correct"),
-                             buildEstilos(attrs.getEstilosMap("styles"))
-                         );
-                     :}
-                   | MULTIPLE_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
-                     {:
-                         RESULT = new NodoPreguntaMultiple(
-                             attrs.getExpresion("width"),
-                             attrs.getExpresion("height"),
-                             attrs.getListaExpresiones("options"),
-                             attrs.getListaExpresiones("correctList"),
-                             buildEstilos(attrs.getEstilosMap("styles"))
-                         );
-                     :}
-                   | OPEN_QUESTION LCORCHETE error RCORCHETE        {: RESULT = null; :}
-                   | DROP_QUESTION LCORCHETE error RCORCHETE        {: RESULT = null; :}
-                   | SELECT_QUESTION LCORCHETE error RCORCHETE      {: RESULT = null; :}
-                   | MULTIPLE_QUESTION LCORCHETE error RCORCHETE    {: RESULT = null; :}
-                   ;
+bloque_codigo ::= item_codigo:i
+                  {:
+                     java.util.List lista = new java.util.ArrayList<>();
+                     if (i != null) lista.add(i);
+                     RESULT = lista;
+                  :}
+                | bloque_codigo:lista item_codigo:i
+                  {:
+                     if (i != null) lista.add(i);
+                     RESULT = lista;
+                  :}
+                | error item_codigo:i
+                  {:
+                     java.util.List lista = new java.util.ArrayList<>();
+                     if (i != null) lista.add(i);
+                     RESULT = lista;
+                  :}
+                | bloque_codigo:lista error item_codigo:i
+                  {:
+                     if (i != null) lista.add(i);
+                     RESULT = lista;
+                  :}
+                ;
+
+item_codigo ::= sentencia:s      {: RESULT = s; :}
+              | declaracion:d     {: RESULT = d; :}
+              | seccion:sec       {: RESULT = sec; :}
+              ;
+
+/* ================================================================
+   SENTENCIAS
+   Asignacion, control de flujo, draw, y elementos visuales
+   ================================================================ */
+
+sentencia ::= asignacion:a      {: RESULT = a; :}
+            | if_stmt:i          {: RESULT = i; :}
+            | while_stmt:w       {: RESULT = w; :}
+            | for_stmt:f         {: RESULT = f; :}
+            | do_while_stmt:dw   {: RESULT = dw; :}
+            | draw_stmt:dr       {: RESULT = dr; :}
+            | tabla:tb           {: RESULT = tb; :}
+            | texto:t            {: RESULT = t; :}
+            | pregunta:p         {: RESULT = p; :}
+            ;
+
+/* ================================================================
+   IF / ELSE IF / ELSE
+   ================================================================ */
+
+if_stmt ::= IF LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE else_parte:ep
+            {: RESULT = new NodoIf(cond, cuerpo, ep); :}
+          | IF LPAREN error RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE else_parte:ep
+            {: RESULT = null; :}
+          | IF LPAREN expresion:cond RPAREN LLLAVE error RLLAVE
+            {: RESULT = null; :}
+          ;
+
+else_parte ::= /* vacio */
+               {: RESULT = null; :}
+             | ELSE LLLAVE bloque_codigo:cuerpo RLLAVE
+               {: RESULT = new NodoElse(cuerpo); :}
+             | ELSE IF LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE else_parte:ep
+               {: RESULT = new NodoIf(cond, cuerpo, ep); :}
+             ;
+
+/* ================================================================
+   WHILE
+   ================================================================ */
+
+while_stmt ::= WHILE LPAREN expresion:cond RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
+               {: RESULT = new NodoWhile(cond, cuerpo); :}
+             | WHILE LPAREN error RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
+               {: RESULT = null; :}
+             | WHILE LPAREN expresion:cond RPAREN LLLAVE error RLLAVE
+               {: RESULT = null; :}
+             ;
+
+/* ================================================================
+   FOR (clasico y rango)
+   FOR (i = 0 ; i < 10 ; i = i + 1) { }
+   FOR (i in 1 .. 5) { }
+   ================================================================ */
+
+for_stmt ::= FOR LPAREN asignacion:inicializacion PUNTO_COMA expresion:cond PUNTO_COMA asignacion:act RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
+             {: RESULT = new NodoFor(inicializacion, cond, act, cuerpo); :}
+           | FOR LPAREN ID:id IN expresion:ini RANGO expresion:fin RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
+             {: RESULT = new NodoForRango(id.toString(), ini, fin, cuerpo); :}
+           | FOR LPAREN error RPAREN LLLAVE bloque_codigo:cuerpo RLLAVE
+             {: RESULT = null; :}
+           | FOR LPAREN error RPAREN LLLAVE error RLLAVE
+             {: RESULT = null; :}
+           ;
+
+/* ================================================================
+   DO-WHILE
+   DO { } WHILE ( condicion )
+   ================================================================ */
+
+do_while_stmt ::= DO LLLAVE bloque_codigo:cuerpo RLLAVE WHILE LPAREN expresion:cond RPAREN
+                  {: RESULT = new NodoDoWhile(cuerpo, cond); :}
+                | DO LLLAVE error RLLAVE WHILE LPAREN expresion:cond RPAREN
+                  {: RESULT = null; :}
+                ;
+
+/* ================================================================
+   DRAW
+   variable.draw() o variable.draw(arg1, arg2, ...)
+   ================================================================ */
+
+draw_stmt ::= ID:id PUNTO DRAW LPAREN lista_args:args RPAREN
+              {: RESULT = new NodoDraw(id.toString(), args); :}
+              ;
+
+lista_args ::= /* vacio */
+               {: RESULT = new java.util.ArrayList<>(); :}
+             | expresion:e
+               {:
+                  java.util.List lista = new java.util.ArrayList<>();
+                  lista.add(e);
+                  RESULT = lista;
+               :}
+             | lista_args:lista COMA expresion:e
+               {: lista.add(e); RESULT = lista; :}
+             ;

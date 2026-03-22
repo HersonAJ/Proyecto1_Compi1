@@ -15,21 +15,21 @@ data class NodoAsignacion(
 
 data class NodoIf(
     val condicion: NodoExpresion,
-    val cuerppo: List<NodoInstruccion>,
+    val cuerppo: List<Any>,
     val elseParte: NodoInstruccion?
 ) : NodoInstruccion()
 
 data class NodoElse(
-    val cuerppo: List<NodoInstruccion>
+    val cuerppo: List<Any>
 ) : NodoInstruccion()
 
 data class NodoWhile(
     val condicion: NodoExpresion,
-    val cuerppo: List<NodoInstruccion>
+    val cuerppo: List<Any>
 ) : NodoInstruccion()
 
 data class NodoDoWhile(
-    val cuerppo: List<NodoInstruccion>,
+    val cuerppo: List<Any>,
     val condicion: NodoExpresion
 ) : NodoInstruccion()
 
@@ -37,14 +37,14 @@ data class NodoFor(
     val inicializacion: NodoAsignacion,
     val condicion: NodoExpresion,
     val actualizacion: NodoAsignacion,
-    val cuerpo: List<NodoInstruccion>
+    val cuerpo: List<Any>
 ) : NodoInstruccion()
 
 data class NodoForRango(
     val variable: String,
     val inicio: NodoExpresion,
     val fin: NodoExpresion,
-    val cuerpo: List<NodoInstruccion>
+    val cuerpo: List<Any>
 ) : NodoInstruccion()
 
 data class NodoDraw(

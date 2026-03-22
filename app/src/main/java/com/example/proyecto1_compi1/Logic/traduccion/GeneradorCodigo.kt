@@ -14,54 +14,72 @@ class GeneradorCodigo(
     private val ejecutor = EjecutorInstrucciones(tabla, evaluador, genElementos, errores)
     private val genMetadatos = GeneradorMetadatos()
 
-    /**
-     Recibe el AST del Lenguaje 1 y produce un String en formato .pkm
-
-     Orden de ejecucion:
-     1. Declaraciones -> llena la tabla de simbolos
-     2. Secciones -> genera .pkm (usa valores de la tabla)
-     3. Codigo -> ejecuta logica, genera draws
-     */
     fun generar(programa: NodoPrograma): String {
-        //Paso 1: Registrar declaraciones en la tabla
-        procesarDeclaraciones(programa.declaraciones)
-
-        //Paso 2: Generar .pkm de las secciones del formulario
         val contenido = StringBuilder()
-        for (elemento in programa.secciones) {
-            @Suppress("SENSELESS_COMPARISON")
-            if (elemento != null) {
-                contenido.append(genElementos.generar(elemento))
+
+        for (item in programa.items) {
+            procesarItem(item, contenido)
+        }
+
+        val metadatos = genMetadatos.generar(genElementos)
+        return metadatos + contenido.toString()
+    }
+
+    private fun procesarItem(item: Any, contenido: StringBuilder) {
+        when (item) {
+            is NodoDeclaracion -> procesarDeclaracion(item)
+
+            is NodoAsignacion -> {
+                val valor = evaluador.evaluar(item.valor)
+                tabla.asignar(item.nombre, valor)
+            }
+
+            is NodoElemento -> {
+                contenido.append(genElementos.generar(item))
+            }
+
+            is NodoIf, is NodoWhile, is NodoDoWhile,
+            is NodoFor, is NodoForRango -> {
+                val resultados = ejecutor.ejecutarBloque(listOf(item))
+                for (elem in resultados) {
+                    contenido.append(elem)
+                }
+            }
+
+            is NodoDraw -> {
+                val resultados = ejecutor.ejecutarBloque(listOf(item))
+                for (elem in resultados) {
+                    contenido.append(elem)
+                }
             }
         }
-
-        //Paso 3: Ejecutar bloques de codigo (if, for, while, draw)
-        val elementosDraw = ejecutor.ejecutarBloque(programa.instrucciones)
-        for (elem in elementosDraw) {
-            contenido.append(elem)
-        }
-
-        //Paso 4: Generar metadatos con los contadores
-        val metadatos = genMetadatos.generar(genElementos)
-
-        return metadatos + contenido.toString()
     }
 
     fun getErrores(): List<String> {
         return errores + tabla.getErrores() + evaluador.getErrores()
     }
 
-    private fun procesarDeclaraciones(declaraciones: List<NodoInstruccion>) {
-        for (decl in declaraciones) {
-            if (decl is NodoDeclaracion) {
-                if (decl.tipo == "special") {
-                    tabla.declarar(decl.nombre, "special", decl.valor)
+    private fun procesarDeclaracion(decl: NodoDeclaracion) {
+        if (decl.tipo == "special") {
+            if (tabla.existe(decl.nombre)) {
+                tabla.asignar(decl.nombre, decl.valor)
+            } else {
+                tabla.declarar(decl.nombre, "special", decl.valor)
+            }
+        } else {
+            val valor = if (decl.valor is NodoExpresion) {
+                evaluador.evaluar(decl.valor as NodoExpresion)
+            } else null
+
+            if (tabla.existe(decl.nombre)) {
+                // Ya existe: reasignar si es mismo tipo
+                if (tabla.obtenerTipo(decl.nombre) == decl.tipo) {
+                    tabla.asignar(decl.nombre, valor)
                 } else {
-                    val valor = if (decl.valor is NodoExpresion) {
-                        evaluador.evaluar(decl.valor as NodoExpresion)
-                    } else null
-                    tabla.declarar(decl.nombre, decl.tipo, valor)
+                    errores.add("Variable '${decl.nombre}' ya fue declarada con tipo ${tabla.obtenerTipo(decl.nombre)}.")
                 }
+            } else {
+                tabla.declarar(decl.nombre, decl.tipo, valor)
             }
         }
     }
