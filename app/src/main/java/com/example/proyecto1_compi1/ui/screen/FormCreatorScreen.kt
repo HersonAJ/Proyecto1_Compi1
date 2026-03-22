@@ -57,6 +57,7 @@ fun FormCreatorScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .padding(16.dp)
     ) {
 
@@ -159,7 +160,7 @@ fun FormCreatorScreen(
                         }
                     },
                     icon = { Icon(Icons.Default.Check, contentDescription = null) },
-                    label = { Text("Finish") }
+                    label = { Text("Responder") }
                 )
 
                 NavigationBarItem(

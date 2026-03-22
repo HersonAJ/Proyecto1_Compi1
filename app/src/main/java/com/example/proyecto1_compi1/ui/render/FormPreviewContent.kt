@@ -22,7 +22,6 @@ fun FormPreviewContent(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(scrollState)
-            .padding(8.dp)
     ) {
         for (elemento in programa.elementos) {
             RenderElemento(

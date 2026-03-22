@@ -3,13 +3,11 @@ package com.example.proyecto1_compi1.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.proyecto1_compi1.models.nodo2.Nodo2Programa
 import com.example.proyecto1_compi1.ui.render.FormPreviewContent
 import com.example.proyecto1_compi1.ui.render.FormularioState
-
 
 @Composable
 fun FormAnswerScreen(
@@ -20,10 +18,18 @@ fun FormAnswerScreen(
     var mostrarResultado by remember { mutableStateOf(false) }
     var resultadoTexto by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()  // FIX 1: respeta la barra de estado
+    ) {
 
         // Formulario interactivo
-        Box(modifier = Modifier.weight(1f)) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()  // FIX 2: ocupa todo el ancho
+        ) {
             FormPreviewContent(
                 programa = programa,
                 esInteractivo = true,

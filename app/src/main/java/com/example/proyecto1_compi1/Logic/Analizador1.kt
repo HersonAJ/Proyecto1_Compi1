@@ -32,7 +32,7 @@ class Analizador1 {
             @Suppress("DEPRECATION")
             parser = Parser(lexer)
             val resultado = parser.parse()
-            ast = resultado.value as? NodoPrograma
+            ast = if (resultado != null) resultado.value as? NodoPrograma else null
 
         } catch (e: Exception) {
             if (erroresLexicos.isEmpty() && erroresSintacticos.isEmpty()) {
