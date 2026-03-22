@@ -23,7 +23,8 @@ import com.example.proyecto1_compi1.ui.screen.DebugDialog
 @Composable
 fun FormCreatorScreen(
     viewModel: FormularioViewModel,
-    onNavigateToErrors: () -> Unit
+    onNavigateToErrors: () -> Unit,
+    onNavigateToAnswer: () -> Unit
 ) {
 
     val codigo by viewModel.codigo.collectAsState()
@@ -151,7 +152,12 @@ fun FormCreatorScreen(
 
                 NavigationBarItem(
                     selected = false,
-                    onClick = { },
+                    onClick = {
+                        val ast2Value = viewModel.ast2.value
+                        if (ast2Value != null) {
+                            onNavigateToAnswer()
+                        }
+                    },
                     icon = { Icon(Icons.Default.Check, contentDescription = null) },
                     label = { Text("Finish") }
                 )
