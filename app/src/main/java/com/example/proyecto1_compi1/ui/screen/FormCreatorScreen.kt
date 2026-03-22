@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -18,10 +19,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.unit.dp
+import com.example.proyecto1_compi1.Logic.ColoreadorCodigo
 import com.example.proyecto1_compi1.Logic.ManejadorArchivos
 import com.example.proyecto1_compi1.Logic.ServicioServidor
 import com.example.proyecto1_compi1.ViewModel.FormularioViewModel
@@ -230,19 +235,32 @@ fun FormCreatorScreen(
                     .fillMaxWidth()
             ) {
 
-                OutlinedTextField(
+                BasicTextField(
                     value = codigo,
                     onValueChange = { viewModel.actualizarCodigo(it) },
-                    modifier = Modifier.fillMaxSize(),
-                    placeholder = { Text("Escribe aquí el código...") },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Black,
-                        unfocusedContainerColor = Color.Black
-                    ),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .padding(12.dp),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(
                         fontFamily = FontFamily.Monospace,
                         color = Color.White
-                    )
+                    ),
+                    cursorBrush = SolidColor(Color.White),
+                    decorationBox = { innerTextField ->
+                        if (codigo.text.isEmpty()) {
+                            Text(
+                                text = "Escribe aquí el código...",
+                                color = Color.Gray,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                        innerTextField()
+                    },
+                    visualTransformation = { textoAnotado ->
+                        val coloreado = ColoreadorCodigo.colorear(textoAnotado.text)
+                        TransformedText(coloreado, OffsetMapping.Identity)
+                    }
                 )
 
                 // indicador fila / columna
