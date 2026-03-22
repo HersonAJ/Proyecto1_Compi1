@@ -23,16 +23,24 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.example.proyecto1_compi1.Logic.ManejadorArchivos
+import com.example.proyecto1_compi1.Logic.ServicioServidor
 import com.example.proyecto1_compi1.ViewModel.FormularioViewModel
 import com.example.proyecto1_compi1.ui.render.FormPreviewContent
 import com.example.proyecto1_compi1.ui.screen.DebugDialog
+import com.example.proyecto1_compi1.ui.screen.DialogoConfigServidor
 import com.example.proyecto1_compi1.ui.screen.DialogoOpciones
+import com.example.proyecto1_compi1.ui.screen.DialogoSubirServidor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun FormCreatorScreen(
     viewModel: FormularioViewModel,
+    servicioServidor: ServicioServidor,
     onNavigateToErrors: () -> Unit,
-    onNavigateToAnswer: () -> Unit
+    onNavigateToAnswer: () -> Unit,
+    onNavigateToExplorar: () -> Unit
 ) {
     val context = LocalContext.current
     val manejadorArchivos = remember { ManejadorArchivos() }
@@ -55,6 +63,10 @@ fun FormCreatorScreen(
     val textoAntesCursor = codigo.text.take(cursorPos)
     val fila = textoAntesCursor.count { it == '\n' } + 1
     val columna = cursorPos - (textoAntesCursor.lastIndexOf('\n') + 1) + 1
+
+    var mostrarDialogoSubir by remember { mutableStateOf(false) }
+    var mostrarDialogoConfig by remember { mutableStateOf(false) }
+    var ipServidor by remember { mutableStateOf("192.168.1.100") }
 
 //Abrir archivo .form
     val selectorAbrirForm = rememberLauncherForActivityResult(
@@ -121,23 +133,53 @@ fun FormCreatorScreen(
         )
     }
 
-    if (mostrarOpciones) {
-        DialogoOpciones(
-            onAbrirForm = {
-                selectorAbrirForm.launch(arrayOf("*/*"))
-            },
-            onGuardarForm = {
-                selectorGuardarForm.launch("formulario.form")
-            },
-            onAbrirPkm = {
-                selectorAbrirPkm.launch(arrayOf("*/*"))
-            },
-            onGuardarPkm = {
-                selectorGuardarPkm.launch("formulario.pkm")
-            },
-            onCerrar = { mostrarOpciones = false }
-        )
-    }
+     if (mostrarOpciones) {
+         DialogoOpciones(
+             onAbrirForm = { selectorAbrirForm.launch(arrayOf("*/*")) },
+             onGuardarForm = { selectorGuardarForm.launch("formulario.form") },
+             onAbrirPkm = { selectorAbrirPkm.launch(arrayOf("*/*")) },
+             onGuardarPkm = { selectorGuardarPkm.launch("formulario.pkm") },
+             onSubirServidor = { mostrarDialogoSubir = true },
+             onExplorarServidor = { onNavigateToExplorar() },
+             onConfigServidor = { mostrarDialogoConfig = true },
+             onCerrar = { mostrarOpciones = false }
+         )
+     }
+
+    if (mostrarDialogoSubir) {
+         DialogoSubirServidor(
+             onSubir = { nombre ->
+                 val pkm = viewModel.codigoPkm.value
+                 if (pkm != null) {
+                     kotlinx.coroutines.MainScope().launch {
+                         val exito = withContext(Dispatchers.IO) {
+                             servicioServidor.subirFormulario(nombre, pkm, "Herson Aguilar")
+                         }
+                         if (exito) {
+                             Toast.makeText(context, "Formulario subido correctamente", Toast.LENGTH_SHORT).show()
+                         } else {
+                             Toast.makeText(context, "Error al subir formulario", Toast.LENGTH_SHORT).show()
+                         }
+                     }
+                 } else {
+                     Toast.makeText(context, "Primero analiza el código", Toast.LENGTH_SHORT).show()
+                 }
+             },
+             onCerrar = { mostrarDialogoSubir = false }
+         )
+     }
+
+    if (mostrarDialogoConfig) {
+         DialogoConfigServidor(
+             ipActual = ipServidor,
+             onGuardar = { ip ->
+                 ipServidor = ip
+                 servicioServidor.setDireccion(ip)
+                 Toast.makeText(context, "Servidor configurado: $ip", Toast.LENGTH_SHORT).show()
+             },
+             onCerrar = { mostrarDialogoConfig = false }
+         )
+     }
 
     if (errorCargaPkm != null) {
         AlertDialog(
