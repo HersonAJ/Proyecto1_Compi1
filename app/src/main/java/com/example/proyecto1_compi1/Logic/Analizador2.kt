@@ -46,6 +46,10 @@ class Analizador2 {
             lexer?.let { erroresLexicos.addAll(it.getErrores()) }
             parser?.let { erroresSintacticos.addAll(it.getErroresSintacticos()) }
         }
+
+        if (erroresLexicos.isNotEmpty() || erroresSintacticos.isNotEmpty()) {
+            return null
+        }
         return ast
     }
 

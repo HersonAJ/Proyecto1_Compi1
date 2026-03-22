@@ -41,6 +41,7 @@ fun FormCreatorScreen(
     val isAnalizando by viewModel.isAnalizando.collectAsState()
     val errores by viewModel.reporteErrores.collectAsState()
     val ast2 by viewModel.ast2.collectAsState()
+    val errorCargaPkm by viewModel.errorCargaPkm.collectAsState()
 
     //estados para el debug dialog
     val mostrarDebug by viewModel.mostrarDebug.collectAsState()
@@ -135,6 +136,19 @@ fun FormCreatorScreen(
                 selectorGuardarPkm.launch("formulario.pkm")
             },
             onCerrar = { mostrarOpciones = false }
+        )
+    }
+
+    if (errorCargaPkm != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.cerrarErrorPkm() },
+            title = { Text("Error al cargar formulario") },
+            text = { Text(errorCargaPkm!!) },
+            confirmButton = {
+                Button(onClick = { viewModel.cerrarErrorPkm() }) {
+                    Text("Aceptar")
+                }
+            }
         )
     }
 

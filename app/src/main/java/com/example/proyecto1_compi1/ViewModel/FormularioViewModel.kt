@@ -31,6 +31,9 @@ class FormularioViewModel: ViewModel() {
     private val _isAnalizando = MutableStateFlow(false)
     val isAnalizando: StateFlow<Boolean> = _isAnalizando.asStateFlow()
 
+    private val _errorCargaPkm = MutableStateFlow<String?>(null)
+    val errorCargaPkm: StateFlow<String?> = _errorCargaPkm.asStateFlow()
+
     // Debug
     private val _codigoPkm = MutableStateFlow<String?>(null)
     val codigoPkm: StateFlow<String?> = _codigoPkm.asStateFlow()
@@ -38,7 +41,7 @@ class FormularioViewModel: ViewModel() {
     private val _mostrarDebug = MutableStateFlow(false)
     val mostrarDebug: StateFlow<Boolean> = _mostrarDebug.asStateFlow()
 
-    // AST2: resultado del análisis del .pkm (lo usará el Renderer)
+    // AST2: resultado del analisis del .pkm (lo usara el Renderer)
     private val _ast2 = MutableStateFlow<Nodo2Programa?>(null)
     val ast2: StateFlow<Nodo2Programa?> = _ast2.asStateFlow()
 
@@ -65,10 +68,10 @@ class FormularioViewModel: ViewModel() {
 
             val resultado = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
 
-                // ===== FASE 1: Lenguaje 1 -> String .pkm =====
+                //FASE 1: Lenguaje 1 -> String .pkm
                 val pkm = analizador1.analizar(_codigo.value.text)
 
-                // ===== FASE 2: String .pkm -> AST2 =====
+                // FASE 2: String .pkm -> AST2
                 var ast2Result: Nodo2Programa? = null
                 if (pkm != null) {
                     ast2Result = analizador2.analizar(pkm)
@@ -155,26 +158,19 @@ class FormularioViewModel: ViewModel() {
 
             _ast2.value = resultado.ast2
             _codigoPkm.value = contenidoPkm
-
-            val reporte = mutableListOf<ErrorReporte>()
-            for (error in resultado.lexicos) {
-                reporte.add(ErrorReporte(
-                    lexema = error.lexema, linea = error.linea,
-                    columna = error.columna, tipo = "Lexico PKM",
-                    descripcion = error.descripcion
-                ))
-            }
-            for (error in resultado.sintacticos) {
-                reporte.add(ErrorReporte(
-                    lexema = error.lexema, linea = error.linea,
-                    columna = error.columna, tipo = "Sintactico PKM",
-                    descripcion = error.descripcion
-                ))
-            }
-
-            _reporteErrores.value = reporte
             _isAnalizando.value = false
-            _mostrarDebug.value = true
+
+            // Si hay errores, generar mensaje
+            if (resultado.ast2 == null && (resultado.lexicos.isNotEmpty() || resultado.sintacticos.isNotEmpty())) {
+                val sb = StringBuilder("El archivo .pkm tiene errores y no se puede mostrar:\n\n")
+                for (error in resultado.lexicos) {
+                    sb.append("Linea ${error.linea}, Col ${error.columna}: ${error.descripcion}\n")
+                }
+                for (error in resultado.sintacticos) {
+                    sb.append("Linea ${error.linea}, Col ${error.columna}: ${error.descripcion}\n")
+                }
+                _errorCargaPkm.value = sb.toString()
+            }
         }
     }
 
@@ -188,5 +184,9 @@ class FormularioViewModel: ViewModel() {
         _reporteErrores.value = emptyList()
         _codigoPkm.value = null
         _ast2.value = null
+    }
+
+    fun cerrarErrorPkm() {
+        _errorCargaPkm.value = null
     }
 }
