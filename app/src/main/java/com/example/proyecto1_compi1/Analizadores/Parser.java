@@ -2347,13 +2347,23 @@ class CUP$Parser$actions {
 		int attrsright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
 		Atributos attrs = (Atributos)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
 		
+                 java.util.List pokemonRango = (java.util.List) attrs.get("pokemon");
+                 NodoExpresion pokDesde = null;
+                 NodoExpresion pokHasta = null;
+                 if (pokemonRango != null && pokemonRango.size() == 2) {
+                     pokDesde = (NodoExpresion) pokemonRango.get(0);
+                     pokHasta = (NodoExpresion) pokemonRango.get(1);
+                 }
+
                  RESULT = new NodoPreguntaDesplegable(
                      attrs.getExpresion("label"),
                      attrs.getExpresion("width"),
                      attrs.getExpresion("height"),
                      attrs.getListaExpresiones("options"),
                      attrs.getExpresion("correct"),
-                     buildEstilos(attrs.getEstilosMap("styles"))
+                     buildEstilos(attrs.getEstilosMap("styles")),
+                     pokDesde,
+                     pokHasta
                  );
              
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("pregunta",28, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
@@ -2658,13 +2668,23 @@ class CUP$Parser$actions {
 		int attrsright = ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).right;
 		Atributos attrs = (Atributos)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
 		
+                         java.util.List pokemonRango = (java.util.List) attrs.get("pokemon");
+                         NodoExpresion pokDesde = null;
+                         NodoExpresion pokHasta = null;
+                         if (pokemonRango != null && pokemonRango.size() == 2) {
+                             pokDesde = (NodoExpresion) pokemonRango.get(0);
+                             pokHasta = (NodoExpresion) pokemonRango.get(1);
+                         }
+
                          RESULT = new NodoPreguntaDesplegable(
                              attrs.getExpresion("label"),
                              attrs.getExpresion("width"),
                              attrs.getExpresion("height"),
                              attrs.getListaExpresiones("options"),
                              attrs.getExpresion("correct"),
-                             buildEstilos(attrs.getEstilosMap("styles"))
+                             buildEstilos(attrs.getEstilosMap("styles")),
+                             pokDesde,
+                             pokHasta
                          );
                      
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("pregunta_special",29, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);

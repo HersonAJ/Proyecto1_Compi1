@@ -1,12 +1,14 @@
 package com.example.proyecto1_compi1.Logic.traduccion
 
+import com.example.proyecto1_compi1.Logic.ServicioPokeApi
 import com.example.proyecto1_compi1.Logic.evaluacion.EvaluadorExpresiones
 import com.example.proyecto1_compi1.models.nodos.*
 
 class GeneradorElementos(
     private val evaluador: EvaluadorExpresiones,
     private val genEstilos: GeneradorEstilos,
-    private val errores: MutableList<String>
+    private val errores: MutableList<String>,
+    private val servicioPokeApi: ServicioPokeApi = ServicioPokeApi()
 ) {
     // Contadores para los metadatos
     var totalSecciones = 0; private set
@@ -106,8 +108,21 @@ class GeneradorElementos(
         val w = optNum(p.ancho)
         val h = optNum(p.alto)
         val label = evalStr(p.label)
-        val opts = formatOpciones(p.opciones)
         val correct = if (p.correcto != null) evalExpr(p.correcto) else "-1"
+
+        // Resolver opciones: pokemon o normales
+        val opts = if (p.pokemonDesde != null && p.pokemonHasta != null) {
+            // Consultar PokeAPI
+            val desde = (evaluador.evaluar(p.pokemonDesde) as? Double)?.toInt() ?: 1
+            val hasta = (evaluador.evaluar(p.pokemonHasta) as? Double)?.toInt() ?: 10
+            val nombres = servicioPokeApi.obtenerPokemones(desde, hasta)
+            errores.addAll(servicioPokeApi.getErrores())
+            servicioPokeApi.limpiarErrores()
+            // Formatear como lista de strings
+            "{${nombres.joinToString(",") { "\"$it\"" }}}"
+        } else {
+            formatOpciones(p.opciones)
+        }
 
         return if (p.estilos != null) {
             "<drop=$w,$h,\"$label\",$opts,$correct>\n${genEstilos.generar(p.estilos)}</drop>\n"

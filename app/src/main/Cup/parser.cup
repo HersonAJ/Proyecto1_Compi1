@@ -531,13 +531,23 @@ pregunta ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
              :}
            | DROP_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
              {:
+                 java.util.List pokemonRango = (java.util.List) attrs.get("pokemon");
+                 NodoExpresion pokDesde = null;
+                 NodoExpresion pokHasta = null;
+                 if (pokemonRango != null && pokemonRango.size() == 2) {
+                     pokDesde = (NodoExpresion) pokemonRango.get(0);
+                     pokHasta = (NodoExpresion) pokemonRango.get(1);
+                 }
+
                  RESULT = new NodoPreguntaDesplegable(
                      attrs.getExpresion("label"),
                      attrs.getExpresion("width"),
                      attrs.getExpresion("height"),
                      attrs.getListaExpresiones("options"),
                      attrs.getExpresion("correct"),
-                     buildEstilos(attrs.getEstilosMap("styles"))
+                     buildEstilos(attrs.getEstilosMap("styles")),
+                     pokDesde,
+                     pokHasta
                  );
              :}
            | SELECT_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
@@ -633,15 +643,26 @@ pregunta_special ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCOR
                      :}
                    | DROP_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
                      {:
+                         java.util.List pokemonRango = (java.util.List) attrs.get("pokemon");
+                         NodoExpresion pokDesde = null;
+                         NodoExpresion pokHasta = null;
+                         if (pokemonRango != null && pokemonRango.size() == 2) {
+                             pokDesde = (NodoExpresion) pokemonRango.get(0);
+                             pokHasta = (NodoExpresion) pokemonRango.get(1);
+                         }
+
                          RESULT = new NodoPreguntaDesplegable(
                              attrs.getExpresion("label"),
                              attrs.getExpresion("width"),
                              attrs.getExpresion("height"),
                              attrs.getListaExpresiones("options"),
                              attrs.getExpresion("correct"),
-                             buildEstilos(attrs.getEstilosMap("styles"))
+                             buildEstilos(attrs.getEstilosMap("styles")),
+                             pokDesde,
+                             pokHasta
                          );
                      :}
+
                    | SELECT_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
                      {:
                          RESULT = new NodoPreguntaSeleccion(

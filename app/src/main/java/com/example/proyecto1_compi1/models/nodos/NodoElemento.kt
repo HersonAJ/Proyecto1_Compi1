@@ -45,7 +45,9 @@ data class NodoPreguntaDesplegable(
     val alto: NodoExpresion?,
     val opciones: List<NodoExpresion>,
     val correcto: NodoExpresion?,
-    val estilos: NodoEstilos?
+    val estilos: NodoEstilos?,
+    val pokemonDesde: NodoExpresion? = null,
+    val pokemonHasta: NodoExpresion? = null
 ) : NodoElemento()
 
 // SELECT_QUESTION [ ... ]
