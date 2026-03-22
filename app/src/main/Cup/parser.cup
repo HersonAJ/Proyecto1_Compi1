@@ -806,9 +806,6 @@ sentencia ::= asignacion:a      {: RESULT = a; :}
             | for_stmt:f         {: RESULT = f; :}
             | do_while_stmt:dw   {: RESULT = dw; :}
             | draw_stmt:dr       {: RESULT = dr; :}
-            | tabla:tb           {: RESULT = tb; :}
-            | texto:t            {: RESULT = t; :}
-            | pregunta:p         {: RESULT = p; :}
             ;
 
 /* ================================================================
