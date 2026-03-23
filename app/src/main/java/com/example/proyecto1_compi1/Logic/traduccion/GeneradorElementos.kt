@@ -63,8 +63,10 @@ class GeneradorElementos(
         }
         val w = evalAttr(tabla.atributos["width"])
         val h = evalAttr(tabla.atributos["height"])
+        val px = evalAttr(tabla.atributos["pointX"])
+        val py = evalAttr(tabla.atributos["pointY"])
         val sb = StringBuilder()
-        sb.append("<table=$w,$h>\n")
+        sb.append("<table=$w,$h,$px,$py>\n")
 
         if (tabla.estilos != null) {
             sb.append(genEstilos.generar(tabla.estilos))
@@ -274,11 +276,20 @@ class GeneradorElementos(
 
     private fun validarDimensionDirecta(valor: NodoExpresion?, campo: String, contexto: String): Boolean {
         if (valor == null) return true
+        if (contieneComodin(valor)) return true
         val resultado = evaluador.evaluar(valor)
         if (resultado is Double && resultado < 0) {
             errores.add("$contexto: el valor de '$campo' no puede ser negativo ($resultado).")
             return false
         }
         return true
+    }
+    private fun contieneComodin(expr: NodoExpresion): Boolean {
+        return when (expr) {
+            is NodoComodin -> true
+            is NodoOperacionBinaria -> contieneComodin(expr.izquierda) || contieneComodin(expr.derecha)
+            is NodoOperacionUnaria -> contieneComodin(expr.expresion)
+            else -> false
+        }
     }
 }
