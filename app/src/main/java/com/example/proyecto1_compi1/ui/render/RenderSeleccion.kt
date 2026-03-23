@@ -47,8 +47,6 @@ fun RenderSeleccion(
             val seleccion = estado.getRespuestaIndice(id)
 
             nodo.opciones.forEachIndexed { index, opcion ->
-
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(vertical = 2.dp)
