@@ -128,8 +128,14 @@ fun FormCreatorScreen(
     val selectorGuardarPkm = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("text/plain")
     ) { uri ->
-        if (uri != null && codigoPkm != null) {
-            manejadorArchivos.guardarArchivo(context, uri, codigoPkm!!)
+        if (uri != null) {
+            val pkm = viewModel.codigoPkm.value
+            val tieneErrores = viewModel.reporteErrores.value.isNotEmpty()
+            if (pkm != null && !tieneErrores) {
+                manejadorArchivos.guardarArchivo(context, uri, pkm)
+            } else if (tieneErrores) {
+                Toast.makeText(context, "No se puede guardar: el formulario tiene errores", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -160,17 +166,11 @@ fun FormCreatorScreen(
          DialogoSubirServidor(
              onSubir = { nombre ->
                  val pkm = viewModel.codigoPkm.value
-                 if (pkm != null) {
-                     kotlinx.coroutines.MainScope().launch {
-                         val exito = withContext(Dispatchers.IO) {
-                             servicioServidor.subirFormulario(nombre, pkm, "Herson Aguilar")
-                         }
-                         if (exito) {
-                             Toast.makeText(context, "Formulario subido correctamente", Toast.LENGTH_SHORT).show()
-                         } else {
-                             Toast.makeText(context, "Error al subir formulario", Toast.LENGTH_SHORT).show()
-                         }
-                     }
+                 val tieneErrores = viewModel.reporteErrores.value.isNotEmpty()
+                 if (pkm != null && !tieneErrores) {
+                     // ... subir
+                 } else if (tieneErrores) {
+                     Toast.makeText(context, "No se puede subir: el formulario tiene errores", Toast.LENGTH_SHORT).show()
                  } else {
                      Toast.makeText(context, "Primero analiza el código", Toast.LENGTH_SHORT).show()
                  }
