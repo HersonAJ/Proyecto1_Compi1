@@ -135,13 +135,25 @@ class GeneradorElementos(
         totalSeleccion++
         val w = optNum(p.ancho)
         val h = optNum(p.alto)
-        val opts = formatOpciones(p.opciones)
+        val label = evalStr(p.label)
         val correct = if (p.correcto != null) evalExpr(p.correcto) else "-1"
 
-        return if (p.estilos != null) {
-            "<select=$w,$h,$opts,$correct>\n${genEstilos.generar(p.estilos)}</select>\n"
+        // Resolver opciones: pokemon o normales
+        val opts = if (p.pokemonDesde != null && p.pokemonHasta != null) {
+            val desde = (evaluador.evaluar(p.pokemonDesde) as? Double)?.toInt() ?: 1
+            val hasta = (evaluador.evaluar(p.pokemonHasta) as? Double)?.toInt() ?: 10
+            val nombres = servicioPokeApi.obtenerPokemones(desde, hasta)
+            errores.addAll(servicioPokeApi.getErrores())
+            servicioPokeApi.limpiarErrores()
+            "{${nombres.joinToString(",") { "\"$it\"" }}}"
         } else {
-            "<select=$w,$h,$opts,$correct/>\n"
+            formatOpciones(p.opciones)
+        }
+
+        return if (p.estilos != null) {
+            "<select=$w,$h,\"$label\",$opts,$correct>\n${genEstilos.generar(p.estilos)}</select>\n"
+        } else {
+            "<select=$w,$h,\"$label\",$opts,$correct/>\n"
         }
     }
 
@@ -149,8 +161,19 @@ class GeneradorElementos(
         totalMultiples++
         val w = optNum(p.ancho)
         val h = optNum(p.alto)
-        val opts = formatOpciones(p.opciones)
         val corrects = formatCorrectos(p.correctos)
+
+        // Resolver opciones: pokemon o normales
+        val opts = if (p.pokemonDesde != null && p.pokemonHasta != null) {
+            val desde = (evaluador.evaluar(p.pokemonDesde) as? Double)?.toInt() ?: 1
+            val hasta = (evaluador.evaluar(p.pokemonHasta) as? Double)?.toInt() ?: 10
+            val nombres = servicioPokeApi.obtenerPokemones(desde, hasta)
+            errores.addAll(servicioPokeApi.getErrores())
+            servicioPokeApi.limpiarErrores()
+            "{${nombres.joinToString(",") { "\"$it\"" }}}"
+        } else {
+            formatOpciones(p.opciones)
+        }
 
         return if (p.estilos != null) {
             "<multiple=$w,$h,$opts,$corrects>\n${genEstilos.generar(p.estilos)}</multiple>\n"

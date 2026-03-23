@@ -25,6 +25,16 @@ fun RenderSeleccion(
             .background(misEstilos.bgColor)
             .padding(4.dp)
     ) {
+
+        if (nodo.label.isNotEmpty()) {
+            Text(
+                text = EmojiConverter.convertir(nodo.label),
+                color = misEstilos.color,
+                fontFamily = misEstilos.fontFamily,
+                fontSize = misEstilos.fontSize
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        }
         if (esInteractivo && estado != null) {
             val id = remember {
                 val newId = estado.siguienteId()
@@ -37,6 +47,8 @@ fun RenderSeleccion(
             val seleccion = estado.getRespuestaIndice(id)
 
             nodo.opciones.forEachIndexed { index, opcion ->
+
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(vertical = 2.dp)

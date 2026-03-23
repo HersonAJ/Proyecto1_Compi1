@@ -414,25 +414,24 @@ drop_elem ::= DROP_TAG NUMERO:w COMA NUMERO:h COMA CADENA:label COMA
 /* ======================== SELECT_QUESTION ======================== */
 /* <select=width,height,{"op1","op2"},correct/>                     */
 
-select_elem ::= SELECT_TAG NUMERO:w COMA NUMERO:h COMA
+select_elem ::= SELECT_TAG NUMERO:w COMA NUMERO:h COMA CADENA:label COMA
                 LLLAVE lista_opciones:opts RLLAVE COMA NUMERO:corr SELF_CLOSE
                 {:
                     RESULT = new Nodo2Select(
                         Double.parseDouble(w), Double.parseDouble(h),
-                        opts, Double.parseDouble(corr), null
+                        label, opts, Double.parseDouble(corr), null
                     );
                 :}
-              | SELECT_TAG NUMERO:w COMA NUMERO:h COMA
+              | SELECT_TAG NUMERO:w COMA NUMERO:h COMA CADENA:label COMA
                 LLLAVE lista_opciones:opts RLLAVE COMA NUMERO:corr TAG_CLOSE
                 bloque_estilos:est SELECT_CLOSE
                 {:
                     RESULT = new Nodo2Select(
                         Double.parseDouble(w), Double.parseDouble(h),
-                        opts, Double.parseDouble(corr), est
+                        label, opts, Double.parseDouble(corr), est
                     );
                 :}
               ;
-
 /* ======================== MULTIPLE_QUESTION ======================== */
 /* <multiple=width,height,{"op1","op2"},{correct1,correct2}/>        */
 

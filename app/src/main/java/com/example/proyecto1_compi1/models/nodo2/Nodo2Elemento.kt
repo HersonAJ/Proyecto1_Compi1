@@ -43,6 +43,7 @@ data class Nodo2Drop(
 data class Nodo2Select(
     val width: Double,
     val height: Double,
+    val label: String,
     val opciones: List<String>,
     val correcto: Double,
     val estilos: Nodo2Estilos?
