@@ -16,7 +16,8 @@ fun DialogoOpciones(
     onSubirServidor: () -> Unit,
     onExplorarServidor: () -> Unit,
     onConfigServidor: () -> Unit,
-    onCerrar: () -> Unit
+    onCerrar: () -> Unit,
+    onInsertarPlantilla: () -> Unit
 ) {
     Dialog(onDismissRequest = onCerrar) {
         Surface(
@@ -69,6 +70,13 @@ fun DialogoOpciones(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Guardar formulario (.pkm)")
+                }
+
+                OutlinedButton(
+                    onClick = { onInsertarPlantilla(); onCerrar() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Insertar plantilla de código")
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))

@@ -34,6 +34,7 @@ import com.example.proyecto1_compi1.ui.render.FormPreviewContent
 import com.example.proyecto1_compi1.ui.screen.DebugDialog
 import com.example.proyecto1_compi1.ui.screen.DialogoConfigServidor
 import com.example.proyecto1_compi1.ui.screen.DialogoOpciones
+import com.example.proyecto1_compi1.ui.screen.DialogoPlantillas
 import com.example.proyecto1_compi1.ui.screen.DialogoSubirServidor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -72,6 +73,9 @@ fun FormCreatorScreen(
     var mostrarDialogoSubir by remember { mutableStateOf(false) }
     var mostrarDialogoConfig by remember { mutableStateOf(false) }
     var ipServidor by remember { mutableStateOf("192.168.1.100") }
+
+    //elementos de plantilla
+    var mostrarPlantillas by remember { mutableStateOf(false) }
 
 //Abrir archivo .form
     val selectorAbrirForm = rememberLauncherForActivityResult(
@@ -147,6 +151,7 @@ fun FormCreatorScreen(
              onSubirServidor = { mostrarDialogoSubir = true },
              onExplorarServidor = { onNavigateToExplorar() },
              onConfigServidor = { mostrarDialogoConfig = true },
+             onInsertarPlantilla = { mostrarPlantillas = true},
              onCerrar = { mostrarOpciones = false }
          )
      }
@@ -196,6 +201,17 @@ fun FormCreatorScreen(
                     Text("Aceptar")
                 }
             }
+        )
+    }
+
+    if (mostrarPlantillas) {
+        DialogoPlantillas(
+            onSeleccionar = { plantilla ->
+                val textoActual = viewModel.codigo.value.text
+                val nuevo = if (textoActual.isEmpty()) plantilla else textoActual + "\n\n" + plantilla
+                viewModel.actualizarCodigo(TextFieldValue(nuevo))
+            },
+            onCerrar = { mostrarPlantillas = false }
         )
     }
 
