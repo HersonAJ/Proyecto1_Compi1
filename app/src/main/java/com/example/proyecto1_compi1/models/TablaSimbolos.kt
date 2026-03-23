@@ -5,12 +5,13 @@ class TablaSimbolos {
     private val simbolos = HashMap<String, Simbolo>()
     private val errores = mutableListOf<String>()
 
+    //analisis semantico para cuando una variable ya fue declarada
     fun declarar(nombre: String, tipo: String, valor: Any?) : Boolean {
         if (simbolos.containsKey(nombre)) {
             errores.add("Variable '$nombre' ya fue declarada.")
             return false
         }
-
+    //analisis semantico cuando una variable no fue asignada
         val valorFinal = valor ?: when (tipo) {
             "number" -> 0.0
             "string" -> ""
@@ -21,6 +22,7 @@ class TablaSimbolos {
         return true
     }
 
+    //analisis semantico cuando una variable no fue declarada
     fun asignar(nombre: String, valor: Any?) : Boolean {
         val simbolo = simbolos[nombre]
 
@@ -28,7 +30,7 @@ class TablaSimbolos {
             errores.add("Variable '$nombre' no ha sido declarada")
             return false
         }
-
+    //analisis sintactico cuando se asigna un tipo incorrecto
         if (!tipoCompatible(simbolo.tipo, valor)) {
             errores.add("No se puede asignar ${tipoDeValor(valor)} a variable $nombre de tipo ${simbolo.tipo}.")
             return false
@@ -60,6 +62,7 @@ class TablaSimbolos {
         errores.clear()
     }
 
+    //metodo para validar la compatibilidad de los tipos en las variables
     private fun tipoCompatible(tipo: String, valor: Any?): Boolean {
         if (valor == null) return true
         return when (tipo) {

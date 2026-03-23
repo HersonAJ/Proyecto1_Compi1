@@ -40,15 +40,41 @@ class GeneradorEstilos (
         sb.append("</style>\n")
         return sb.toString()
     }
-
+//analisis semantico para el rgb y hsl fuera del rango ( o a 255)
     fun resolverColor(color: NodoColor): String {
         return when (color) {
             is NodoColorHex -> color.valor
-            is NodoColorHSL -> color.valor
+            is NodoColorHSL -> {
+                validarHSL(color.valor)
+                color.valor
+            }
             is NodoColorRGB -> {
-                "(${evalNum(color.r)},${evalNum(color.g)},${evalNum(color.b)})"
+                val r = evalNum(color.r)
+                val g = evalNum(color.g)
+                val b = evalNum(color.b)
+                validarRGB(r, g, b)
+                "($r,$g,$b)"
             }
             is NodoColorNombre -> color.nombre
+        }
+    }
+
+    private fun validarRGB(r: String, g: String, b: String) {
+        val rv = r.toDoubleOrNull() ?: return
+        val gv = g.toDoubleOrNull() ?: return
+        val bv = b.toDoubleOrNull() ?: return
+        if (rv < 0 || rv > 255) errores.add("RGB: valor R=$r fuera de rango (0-255).")
+        if (gv < 0 || gv > 255) errores.add("RGB: valor G=$g fuera de rango (0-255).")
+        if (bv < 0 || bv > 255) errores.add("RGB: valor B=$b fuera de rango (0-255).")
+    }
+
+    private fun validarHSL(valor: String) {
+        val limpio = valor.removePrefix("<").removeSuffix(">").trim()
+        val partes = limpio.split(",").mapNotNull { it.trim().toDoubleOrNull() }
+        if (partes.size == 3) {
+            if (partes[0] < 0 || partes[0] > 360) errores.add("HSL: valor H=${partes[0]} fuera de rango (0-360).")
+            if (partes[1] < 0 || partes[1] > 100) errores.add("HSL: valor S=${partes[1]} fuera de rango (0-100).")
+            if (partes[2] < 0 || partes[2] > 100) errores.add("HSL: valor L=${partes[2]} fuera de rango (0-100).")
         }
     }
 

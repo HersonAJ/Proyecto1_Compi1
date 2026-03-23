@@ -18,6 +18,7 @@ class OperacionesAritmeticas (
         }
     }
 
+    //analisis semantico en la negacion de algo que no sea numero
     fun negarNumero(valor: Any): Any? {
         val num = convertidor.aDouble(valor)
 
@@ -26,6 +27,7 @@ class OperacionesAritmeticas (
         return null
     }
 
+    //analisis semantico para que el positivo se aplique solo a numero
     fun positivo(valor: Any): Any? {
         val num = convertidor.aDouble(valor)
         if (num != null) return num
@@ -33,6 +35,7 @@ class OperacionesAritmeticas (
         return null
     }
 
+    //analisis semantico para la suma de tipos no compatibles
     private fun suma(izq: Any, der: Any): Any? {
         val numIzq = convertidor.aDouble(izq)
         val numDer = convertidor.aDouble(der)
@@ -46,6 +49,7 @@ class OperacionesAritmeticas (
         return null
     }
 
+    //analisis semantico para la operacion aritmetica entre tipos invalidos
     private fun aritmetica(izq: Any, der: Any, op: (Double, Double) -> Double): Any? {
         val numIzq = convertidor.aDouble(izq)
         val numDer = convertidor.aDouble(der)
@@ -55,6 +59,7 @@ class OperacionesAritmeticas (
         return null
     }
 
+    //analisis semantico y logico en la division por cero
     private fun division(izq: Any, der: Any): Any? {
         val numIzq = convertidor.aDouble(izq)
         val numDer = convertidor.aDouble(der)
@@ -70,6 +75,7 @@ class OperacionesAritmeticas (
         return null
     }
 
+    //analisis semantico y logico del modulo entre cero
     private fun modulo(izq: Any, der: Any): Any? {
         val numIzq = convertidor.aDouble(izq)
         val numDer = convertidor.aDouble(der)

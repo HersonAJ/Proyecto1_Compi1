@@ -74,6 +74,7 @@ class EjecutorInstrucciones(
 
     // ======================== WHILE ========================
 
+    //analisis semantico limite de iteraciones
     private fun ejecutarWhile(nodo: NodoWhile): List<String> {
         val resultado = mutableListOf<String>()
         var iteraciones = 0
@@ -90,6 +91,7 @@ class EjecutorInstrucciones(
 
     // ======================== DO-WHILE ========================
 
+    //analisis semantico limite de ciclos
     private fun ejecutarDoWhile(nodo: NodoDoWhile): List<String> {
         val resultado = mutableListOf<String>()
         var iteraciones = 0
@@ -107,6 +109,7 @@ class EjecutorInstrucciones(
 
     // ======================== FOR CLASICO ========================
 
+    //analisis semantico si en el for no es numero
     private fun ejecutarFor(nodo: NodoFor): List<String> {
         val resultado = mutableListOf<String>()
         val nombreVar = nodo.inicializacion.nombre
@@ -136,6 +139,7 @@ class EjecutorInstrucciones(
 
     // ======================== FOR RANGO ========================
 
+    //analisis semantico el rango es numerico
     private fun ejecutarForRango(nodo: NodoForRango): List<String> {
         val resultado = mutableListOf<String>()
 
@@ -167,6 +171,7 @@ class EjecutorInstrucciones(
 
     // ======================== DRAW ========================
 
+    //analisis semantico variable no inicializada y no es de topo special
     private fun ejecutarDraw(draw: NodoDraw): List<String> {
         val valor = tabla.obtener(draw.nombre)
 
@@ -191,6 +196,8 @@ class EjecutorInstrucciones(
         return listOf(pkm)
     }
 
+
+    //analisis semantico variable declarada con tipo diferente  y reasignacion
     private fun procesarDeclaracion(decl: NodoDeclaracion) {
         if (decl.tipo == "special") {
             if (tabla.existe(decl.nombre)) {

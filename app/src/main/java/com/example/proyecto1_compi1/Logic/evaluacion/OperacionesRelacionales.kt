@@ -17,6 +17,7 @@ class OperacionesRelacionales (
         }
     }
 
+    //analisis semantico para la comparacion solo entre numeros
     private fun comparar(izq: Any, der: Any, op: (Double, Double) -> Boolean): Any? {
         val numIzq = convertidor.aDouble(izq)
         val numDer = convertidor.aDouble(der)

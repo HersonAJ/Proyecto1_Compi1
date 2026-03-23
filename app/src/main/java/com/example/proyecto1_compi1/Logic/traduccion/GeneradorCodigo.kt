@@ -59,6 +59,7 @@ class GeneradorCodigo(
         return errores + tabla.getErrores() + evaluador.getErrores()
     }
 
+    //analisis semantico variable ya declarada con tipo diferente
     private fun procesarDeclaracion(decl: NodoDeclaracion) {
         if (decl.tipo == "special") {
             if (tabla.existe(decl.nombre)) {

@@ -13,6 +13,8 @@ class OperacionesLogicas(
         }
     }
 
+
+    //analisis semantico para no negar algo que no es booleano
     fun negar(valor: Any): Any? {
         val bool = convertidor.aBoolean(valor)
         if (bool != null) return !bool
@@ -20,6 +22,8 @@ class OperacionesLogicas(
         return null
     }
 
+
+    //analisis semantico para operaciones logicas entre no booleanos
     private fun logica(izq: Any, der: Any, op: (Boolean, Boolean) -> Boolean): Any? {
         val boolIzq = convertidor.aBoolean(izq)
         val boolDer = convertidor.aBoolean(der)

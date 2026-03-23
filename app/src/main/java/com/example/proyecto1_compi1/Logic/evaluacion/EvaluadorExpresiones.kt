@@ -48,6 +48,7 @@ class EvaluadorExpresiones(
         }
     }
 
+    //analisis semantico cuando una variable no ha sido declarada
     private fun evaluarIdentificador(nodo: NodoIdentificador): Any? {
         if (!tabla.existe((nodo.valor))) {
             errores.add("Variable '${nodo.valor}' no ha sido declarada")
@@ -56,6 +57,7 @@ class EvaluadorExpresiones(
         return tabla.obtener(nodo.valor)
     }
 
+    //analisis sintactico para cuando no hay suficientes comidines para remplazar
     private fun evaluarComodin(): Any? {
         if (indiceComodin >= argsComodin.size) {
             errores.add("No hay suficientes elementos para remplazar el comodin '?' ")
@@ -66,6 +68,7 @@ class EvaluadorExpresiones(
         return valor
     }
 
+    //analisis sintactico para un operador desconocido
     private fun evaluarBinaria(nodo: NodoOperacionBinaria): Any? {
         val izq = evaluar(nodo.izquierda) ?: return null
         val der = evaluar(nodo.derecha) ?: return null
@@ -81,6 +84,7 @@ class EvaluadorExpresiones(
         }
     }
 
+    //analisis semantico para el operador unario desconocido
     private fun evaluarUnaria(nodo: NodoOperacionUnaria): Any? {
         val valor = evaluar(nodo.expresion) ?: return null
 
