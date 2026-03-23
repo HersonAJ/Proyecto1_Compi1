@@ -40,13 +40,12 @@ class FormularioState {
 
     @Suppress("UNCHECKED_CAST")
     fun toggleMultiple(id: Int, indice: Int) {
-        val actuales = (respuestas[id] as? MutableSet<Int>) ?: mutableSetOf()
-        if (actuales.contains(indice)) {
-            actuales.remove(indice)
+        val actuales = (respuestas[id] as? Set<Int>) ?: emptySet()
+        respuestas[id] = if (actuales.contains(indice)) {
+            actuales - indice
         } else {
-            actuales.add(indice)
+            actuales + indice
         }
-        respuestas[id] = actuales
     }
 
     @Suppress("UNCHECKED_CAST")
