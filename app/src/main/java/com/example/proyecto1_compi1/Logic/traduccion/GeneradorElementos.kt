@@ -29,6 +29,9 @@ class GeneradorElementos(
         }
     }
     private fun generarSeccion(sec: NodoSeccion): String {
+        if (!validarDimensiones(sec.atributos, "SECTION")) {
+            return ""  // no genera nada
+        }
         totalSecciones++
         val w = evalAttr(sec.atributos["width"])
         val h = evalAttr(sec.atributos["height"])
@@ -55,6 +58,9 @@ class GeneradorElementos(
         return sb.toString()
     }
     private fun generarTabla(tabla: NodoTabla): String {
+        if (!validarDimensiones(tabla.atributos, "SECTION")) {
+            return "" // no genera nada
+        }
         val w = evalAttr(tabla.atributos["width"])
         val h = evalAttr(tabla.atributos["height"])
         val sb = StringBuilder()
@@ -79,6 +85,10 @@ class GeneradorElementos(
         return sb.toString()
     }
     private fun generarTexto(texto: NodoTexto): String {
+        if (!validarDimensionDirecta(texto.ancho, "width", "TEXT") ||
+            !validarDimensionDirecta(texto.alto, "height", "TEXT")) {
+            return ""
+        }
         val w = optNum(texto.ancho)
         val h = optNum(texto.alto)
         val content = evalStr(texto.contenido)
@@ -91,6 +101,10 @@ class GeneradorElementos(
     }
 
     private fun generarAbierta(p: NodoPreguntaAbierta): String {
+        if (!validarDimensionDirecta(p.ancho, "width", "OPEN_QUESTION") ||
+            !validarDimensionDirecta(p.alto, "height", "OPEN_QUESTION")) {
+            return ""
+        }
         totalAbiertas++
         val w = optNum(p.ancho)
         val h = optNum(p.alto)
@@ -104,11 +118,15 @@ class GeneradorElementos(
     }
 
     private fun generarDesplegable(p: NodoPreguntaDesplegable): String {
+        if (!validarDimensionDirecta(p.ancho, "width", "DROP_QUESTION") ||
+            !validarDimensionDirecta(p.alto, "height", "DROP_QUESTION")) {
+            return ""
+        }
         totalDesplegables++
         val w = optNum(p.ancho)
         val h = optNum(p.alto)
         val label = evalStr(p.label)
-        val correct = if (p.correcto != null) evalExpr(p.correcto) else "-1"
+        val correct = if (p.correcto != null) validarCorrect(evalExpr(p.correcto)) ?: "-1" else "-1"
 
         // Resolver opciones: pokemon o normales
         val opts = if (p.pokemonDesde != null && p.pokemonHasta != null) {
@@ -132,11 +150,15 @@ class GeneradorElementos(
     }
 
     private fun generarSeleccion(p: NodoPreguntaSeleccion): String {
+        if (!validarDimensionDirecta(p.ancho, "width", "SELECT_QUESTION") ||
+            !validarDimensionDirecta(p.alto, "height", "SELECT_QUESTION")) {
+            return ""
+        }
         totalSeleccion++
         val w = optNum(p.ancho)
         val h = optNum(p.alto)
         val label = evalStr(p.label)
-        val correct = if (p.correcto != null) evalExpr(p.correcto) else "-1"
+        val correct = if (p.correcto != null) validarCorrect(evalExpr(p.correcto)) ?: "-1" else "-1"
 
         // Resolver opciones: pokemon o normales
         val opts = if (p.pokemonDesde != null && p.pokemonHasta != null) {
@@ -158,6 +180,10 @@ class GeneradorElementos(
     }
 
     private fun generarMultiple(p: NodoPreguntaMultiple): String {
+        if (!validarDimensionDirecta(p.ancho, "width", "MULTIPLE_QUESTION") ||
+            !validarDimensionDirecta(p.alto, "height", "MULTIPLE_QUESTION")) {
+            return ""
+        }
         totalMultiples++
         val w = optNum(p.ancho)
         val h = optNum(p.alto)
@@ -190,7 +216,7 @@ class GeneradorElementos(
 
     private fun formatCorrectos(correctos: List<NodoExpresion>?): String {
         if (correctos.isNullOrEmpty()) return "{}"
-        val items = correctos.map { evalExpr(it) }
+        val items = correctos.mapNotNull { validarCorrect(evalExpr(it)) }
         return "{${items.joinToString(",")}}"
     }
 
@@ -213,5 +239,46 @@ class GeneradorElementos(
     private fun optNum(expr: NodoExpresion?): String {
         if (expr == null) return "0"
         return evalExpr(expr)
+    }
+
+    //analis semantico evalua que el valor de correct sea entero o .0
+    private fun validarCorrect(valor: String): String? {
+        val num = valor.toDoubleOrNull() ?: return valor
+        if (num == num.toLong().toDouble()) {
+            // 1.0, 2.0 -> truncar a 1, 2
+            return num.toLong().toString()
+        } else {
+            // 1.5, 2.3 -> error, no se acepta
+            errores.add("El indice de respuesta correcta debe ser entero, se recibio $valor.")
+            return null
+        }
+    }
+
+    // analisis semantico Valida que width, height, pointX, pointY no sean negativos. Retorna true si son validos, false si hay error.
+    private fun validarDimensiones(atributos: Map<String, Any>, contexto: String): Boolean {
+        var valido = true
+        val campos = listOf("width", "height", "pointX", "pointY")
+
+        for (campo in campos) {
+            val valor = atributos[campo]
+            if (valor is NodoExpresion) {
+                val resultado = evaluador.evaluar(valor)
+                if (resultado is Double && resultado < 0) {
+                    errores.add("$contexto: el valor de '$campo' no puede ser negativo ($resultado).")
+                    valido = false
+                }
+            }
+        }
+        return valido
+    }
+
+    private fun validarDimensionDirecta(valor: NodoExpresion?, campo: String, contexto: String): Boolean {
+        if (valor == null) return true
+        val resultado = evaluador.evaluar(valor)
+        if (resultado is Double && resultado < 0) {
+            errores.add("$contexto: el valor de '$campo' no puede ser negativo ($resultado).")
+            return false
+        }
+        return true
     }
 }
