@@ -1,5 +1,6 @@
 package com.example.proyecto1_compi1.ui.render
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
@@ -13,7 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.proyecto1_compi1.models.nodo2.Nodo2Seccion
-
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 @Composable
 fun RenderSeccion(
     nodo: Nodo2Seccion,
@@ -31,11 +34,7 @@ fun RenderSeccion(
         .heightIn(min = nodo.height.dp)
         .heightIn(min = nodo.height.dp)
         .background(misEstilos.bgColor)
-        .then(
-            if (misEstilos.bordeGrosor > 0f) {
-                Modifier.border(misEstilos.bordeGrosor.dp, misEstilos.bordeColor)
-            } else Modifier
-        )
+        .then(aplicarBorde(misEstilos))
         .padding(4.dp)
 
     if (nodo.orientacion == "HORIZONTAL") {
@@ -50,5 +49,28 @@ fun RenderSeccion(
                 RenderElemento(elemento, misEstilos, resolverEstilos, estado, esInteractivo)
             }
         }
+    }
+}
+
+fun aplicarBorde(estilos: EstilosResueltos): Modifier {
+    if (estilos.bordeGrosor <= 0f) return Modifier
+
+    return when (estilos.bordeTipo) {
+        "DOTTED" -> Modifier.drawBehind {
+            drawRect(
+                color = estilos.bordeColor,
+                style = Stroke(
+                    width = estilos.bordeGrosor.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(
+                        floatArrayOf(10f, 10f), 0f
+                    )
+                )
+            )
+        }
+        "DOUBLE" -> Modifier
+            .border(estilos.bordeGrosor.dp, estilos.bordeColor)
+            .padding((estilos.bordeGrosor + 2).dp)
+            .border(estilos.bordeGrosor.dp, estilos.bordeColor)
+        else -> Modifier.border(estilos.bordeGrosor.dp, estilos.bordeColor)
     }
 }

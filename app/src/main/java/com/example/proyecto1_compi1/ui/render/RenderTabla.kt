@@ -33,11 +33,7 @@ fun RenderTabla(
         .width(nodo.width.dp)
         .heightIn(min = nodo.height.dp)
         .background(misEstilos.bgColor)
-        .then(
-            if (misEstilos.bordeGrosor > 0f) {
-                Modifier.border(misEstilos.bordeGrosor.dp, misEstilos.bordeColor)
-            } else Modifier
-        )
+        .then(aplicarBorde(misEstilos))
 
     Column(modifier = modifier) {
         for (fila in nodo.filas) {

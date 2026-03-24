@@ -21,14 +21,14 @@ fun FormAnswerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()  // FIX 1: respeta la barra de estado
+            .statusBarsPadding()
     ) {
 
         // Formulario interactivo
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth()  // FIX 2: ocupa todo el ancho
+                .fillMaxWidth()
         ) {
             FormPreviewContent(
                 programa = programa,
@@ -37,7 +37,7 @@ fun FormAnswerScreen(
             )
         }
 
-        // Resultado (si se envió)
+        // Resultado (si se envio)
         if (mostrarResultado) {
             Card(
                 modifier = Modifier
@@ -63,7 +63,7 @@ fun FormAnswerScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             OutlinedButton(onClick = onBack) {
-                Text("Back to edit")
+                Text("Editar")
             }
 
             Button(
@@ -77,7 +77,7 @@ fun FormAnswerScreen(
                     mostrarResultado = true
                 }
             ) {
-                Text("Send")
+                Text("Enviar")
             }
         }
     }
