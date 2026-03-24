@@ -40,6 +40,8 @@ fun RenderDesplegable(
                 if (nodo.correcto >= 0) {
                     estado.registrarCorrecto(newId, nodo.correcto.toInt())
                 }
+                estado.registrarLabel(newId, nodo.label)
+                estado.registrarOpciones(newId, nodo.opciones)
                 newId
             }
 

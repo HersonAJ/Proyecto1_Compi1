@@ -15,8 +15,9 @@ fun FormAnswerScreen(
     onBack: () -> Unit
 ) {
     val estado = remember { FormularioState() }
-    var mostrarResultado by remember { mutableStateOf(false) }
-    var resultadoTexto by remember { mutableStateOf("") }
+
+    var mostrarDialogo by remember { mutableStateOf(false) }
+    var resumen by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -37,23 +38,6 @@ fun FormAnswerScreen(
             )
         }
 
-        // Resultado (si se envio)
-        if (mostrarResultado) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Text(
-                    text = resultadoTexto,
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-        }
 
         // Botones
         Row(
@@ -69,15 +53,24 @@ fun FormAnswerScreen(
             Button(
                 onClick = {
                     if (estado.tieneCorrectos()) {
-                        val (aciertos, total) = estado.evaluar()
-                        resultadoTexto = "Resultado: $aciertos / $total correctas"
+                        resumen = estado.obtenerResumen()
                     } else {
-                        resultadoTexto = "Formulario enviado exitosamente"
+                        resumen = "Formulario enviado exitosamente"
                     }
-                    mostrarResultado = true
+                    mostrarDialogo = true
                 }
-            ) {
-                Text("Enviar")
+            ) { Text("Enviar") }
+
+// El dialogo:
+            if (mostrarDialogo) {
+                AlertDialog(
+                    onDismissRequest = { mostrarDialogo = false },
+                    title = { Text("Resultado") },
+                    text = { Text(resumen) },
+                    confirmButton = {
+                        Button(onClick = { mostrarDialogo = false }) { Text("Aceptar") }
+                    }
+                )
             }
         }
     }

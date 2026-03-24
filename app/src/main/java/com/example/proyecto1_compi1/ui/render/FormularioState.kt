@@ -10,6 +10,10 @@ class FormularioState {
     //correctos definidos por el formulario id -> valor esperado
     private val correctos = mutableStateMapOf<Int, Any>()
 
+
+    private val labels = mutableStateMapOf<Int, String>()
+    private val opcionesMap = mutableStateMapOf<Int, List<String>>()
+
     //contador pra asignar id unicos a cada pregunta
     private var contadorId = 0
 
@@ -80,5 +84,33 @@ class FormularioState {
         }
 
         return Pair(aciertos, total)
+    }
+
+    fun registrarLabel(id: Int, label: String) { labels[id] = label }
+    fun registrarOpciones(id: Int, opciones: List<String>) { opcionesMap[id] = opciones }
+
+    @Suppress("UNCHECKED_CAST")
+    fun obtenerResumen(): String {
+        val sb = StringBuilder()
+        val (aciertos, total) = evaluar()
+        sb.append("Resultado: $aciertos / $total\n\n")
+        for ((id, correcto) in correctos) {
+            val label = labels[id] ?: "Pregunta $id"
+            val opciones = opcionesMap[id] ?: emptyList()
+            val respuesta = respuestas[id]
+            val esCorrecta = when (correcto) {
+                is Int -> respuesta == correcto
+                is Set<*> -> respuesta == correcto
+                else -> false
+            }
+            val marca = if (esCorrecta) "OK" else "MAL"
+            val correctaTexto = when (correcto) {
+                is Int -> opciones.getOrElse(correcto) { "$correcto" }
+                is Set<*> -> (correcto as Set<Int>).mapNotNull { opciones.getOrNull(it) }.joinToString(", ")
+                else -> "$correcto"
+            }
+            sb.append("[$marca] $label\n  Correcta: $correctaTexto\n\n")
+        }
+        return sb.toString()
     }
 }

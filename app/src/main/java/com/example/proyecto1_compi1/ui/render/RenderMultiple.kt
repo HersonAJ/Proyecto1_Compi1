@@ -31,6 +31,8 @@ fun RenderMultiple(
                 if (nodo.correctos.isNotEmpty()) {
                     estado.registrarCorrecto(newId, nodo.correctos.map { it.toInt() }.toSet())
                 }
+                estado.registrarLabel(newId, "Selección múltiple")
+                estado.registrarOpciones(newId, nodo.opciones)
                 newId
             }
 
