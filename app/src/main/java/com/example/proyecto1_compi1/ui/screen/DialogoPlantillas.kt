@@ -142,6 +142,7 @@ DROP_QUESTION [
         nombre = "Pregunta selección única",
         codigo = """
 SELECT_QUESTION [
+    label: "Tu pregunta aquí",
     width: 200,
     height: 40,
     options: {"Opción 1", "Opción 2", "Opción 3"},
@@ -154,6 +155,7 @@ SELECT_QUESTION [
         nombre = "Pregunta selección múltiple",
         codigo = """
 MULTIPLE_QUESTION [
+    label: "Tu pregunta aquí",
     width: 200,
     height: 50,
     options: {"Opción 1", "Opción 2", "Opción 3"},
@@ -269,6 +271,7 @@ SECTION [
             correct: 0
         ],
         SELECT_QUESTION [
+            label: "Tu pregunta aquí",
             width: 260,
             height: 40,
             options: {"Sí", "No", "Tal vez"},

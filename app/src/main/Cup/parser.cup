@@ -582,6 +582,7 @@ pregunta ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCORCHETE
                  }
 
                  RESULT = new NodoPreguntaMultiple(
+                     attrs.getExpresion("label"),
                      attrs.getExpresion("width"),
                      attrs.getExpresion("height"),
                      attrs.getListaExpresiones("options"),
@@ -716,6 +717,7 @@ pregunta_special ::= OPEN_QUESTION LCORCHETE lista_atributos_pregunta:attrs RCOR
                          }
 
                          RESULT = new NodoPreguntaMultiple(
+                             attrs.getExpresion("label"),
                              attrs.getExpresion("width"),
                              attrs.getExpresion("height"),
                              attrs.getListaExpresiones("options"),

@@ -2395,6 +2395,7 @@ class CUP$Parser$actions {
                  }
 
                  RESULT = new NodoPreguntaMultiple(
+                     attrs.getExpresion("label"),
                      attrs.getExpresion("width"),
                      attrs.getExpresion("height"),
                      attrs.getListaExpresiones("options"),
@@ -2737,6 +2738,7 @@ class CUP$Parser$actions {
                          }
 
                          RESULT = new NodoPreguntaMultiple(
+                             attrs.getExpresion("label"),
                              attrs.getExpresion("width"),
                              attrs.getExpresion("height"),
                              attrs.getListaExpresiones("options"),

@@ -55,6 +55,7 @@ data class Nodo2Select(
 data class Nodo2Multiple(
     val width: Double,
     val height: Double,
+    val label: String,
     val opciones: List<String>,
     val correctos: List<Double>,
     val estilos: Nodo2Estilos?

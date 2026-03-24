@@ -64,6 +64,7 @@ data class NodoPreguntaSeleccion(
 
 // MULTIPLE_QUESTION [ ... ]
 data class NodoPreguntaMultiple(
+    val label: NodoExpresion?,
     val ancho: NodoExpresion?,
     val alto: NodoExpresion?,
     val opciones: List<NodoExpresion>,
@@ -72,7 +73,6 @@ data class NodoPreguntaMultiple(
     val pokemonDesde: NodoExpresion? = null,
     val pokemonHasta: NodoExpresion? = null
 ) : NodoElemento()
-
 // Estilos
 data class NodoEstilos(
     val color: NodoColor?,

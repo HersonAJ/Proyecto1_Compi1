@@ -103,6 +103,10 @@ class GeneradorElementos(
     }
 
     private fun generarAbierta(p: NodoPreguntaAbierta): String {
+        if (p.label == null) {
+            errores.add("OPEN_QUESTION: el atributo 'label' es obligatorio.")
+            return ""
+        }
         if (!validarDimensionDirecta(p.ancho, "width", "OPEN_QUESTION") ||
             !validarDimensionDirecta(p.alto, "height", "OPEN_QUESTION")) {
             return ""
@@ -120,6 +124,10 @@ class GeneradorElementos(
     }
 
     private fun generarDesplegable(p: NodoPreguntaDesplegable): String {
+        if (p.label == null) {
+            errores.add("DROP_QUESTION: el atributo 'label' es obligatorio.")
+            return ""
+        }
         if (!validarDimensionDirecta(p.ancho, "width", "DROP_QUESTION") ||
             !validarDimensionDirecta(p.alto, "height", "DROP_QUESTION")) {
             return ""
@@ -152,6 +160,10 @@ class GeneradorElementos(
     }
 
     private fun generarSeleccion(p: NodoPreguntaSeleccion): String {
+        if (p.label == null) {
+            errores.add("SELECT_QUESTION: el atributo 'label' es obligatorio.")
+            return ""
+        }
         if (!validarDimensionDirecta(p.ancho, "width", "SELECT_QUESTION") ||
             !validarDimensionDirecta(p.alto, "height", "SELECT_QUESTION")) {
             return ""
@@ -182,6 +194,10 @@ class GeneradorElementos(
     }
 
     private fun generarMultiple(p: NodoPreguntaMultiple): String {
+        if (p.label == null) {
+            errores.add("MULTIPLE_QUESTION: el atributo 'label' es obligatorio.")
+            return ""
+        }
         if (!validarDimensionDirecta(p.ancho, "width", "MULTIPLE_QUESTION") ||
             !validarDimensionDirecta(p.alto, "height", "MULTIPLE_QUESTION")) {
             return ""
@@ -189,9 +205,9 @@ class GeneradorElementos(
         totalMultiples++
         val w = optNum(p.ancho)
         val h = optNum(p.alto)
+        val label = evalStr(p.label)
         val corrects = formatCorrectos(p.correctos)
 
-        // Resolver opciones: pokemon o normales
         val opts = if (p.pokemonDesde != null && p.pokemonHasta != null) {
             val desde = (evaluador.evaluar(p.pokemonDesde) as? Double)?.toInt() ?: 1
             val hasta = (evaluador.evaluar(p.pokemonHasta) as? Double)?.toInt() ?: 10
@@ -204,9 +220,9 @@ class GeneradorElementos(
         }
 
         return if (p.estilos != null) {
-            "<multiple=$w,$h,$opts,$corrects>\n${genEstilos.generar(p.estilos)}</multiple>\n"
+            "<multiple=$w,$h,\"$label\",$opts,$corrects>\n${genEstilos.generar(p.estilos)}</multiple>\n"
         } else {
-            "<multiple=$w,$h,$opts,$corrects/>\n"
+            "<multiple=$w,$h,\"$label\",$opts,$corrects/>\n"
         }
     }
 

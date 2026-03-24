@@ -435,29 +435,29 @@ select_elem ::= SELECT_TAG NUMERO:w COMA NUMERO:h COMA CADENA:label COMA
 /* ======================== MULTIPLE_QUESTION ======================== */
 /* <multiple=width,height,{"op1","op2"},{correct1,correct2}/>        */
 
-multiple_elem ::= MULTIPLE_TAG NUMERO:w COMA NUMERO:h COMA
+multiple_elem ::= MULTIPLE_TAG NUMERO:w COMA NUMERO:h COMA CADENA:label COMA
                   LLLAVE lista_opciones:opts RLLAVE COMA LLLAVE lista_correctos:corrs RLLAVE SELF_CLOSE
                   {:
                       RESULT = new Nodo2Multiple(
                           Double.parseDouble(w), Double.parseDouble(h),
-                          opts, corrs, null
+                          label, opts, corrs, null
                       );
                   :}
-                | MULTIPLE_TAG NUMERO:w COMA NUMERO:h COMA
+                | MULTIPLE_TAG NUMERO:w COMA NUMERO:h COMA CADENA:label COMA
                   LLLAVE lista_opciones:opts RLLAVE COMA LLLAVE lista_correctos:corrs RLLAVE TAG_CLOSE
                   bloque_estilos:est MULTIPLE_CLOSE
                   {:
                       RESULT = new Nodo2Multiple(
                           Double.parseDouble(w), Double.parseDouble(h),
-                          opts, corrs, est
+                          label, opts, corrs, est
                       );
                   :}
-                | MULTIPLE_TAG NUMERO:w COMA NUMERO:h COMA
+                | MULTIPLE_TAG NUMERO:w COMA NUMERO:h COMA CADENA:label COMA
                   LLLAVE lista_opciones:opts RLLAVE COMA LLLAVE RLLAVE SELF_CLOSE
                   {:
                       RESULT = new Nodo2Multiple(
                           Double.parseDouble(w), Double.parseDouble(h),
-                          opts, new java.util.ArrayList<>(), null
+                          label, opts, new java.util.ArrayList<>(), null
                       );
                   :}
                 ;
