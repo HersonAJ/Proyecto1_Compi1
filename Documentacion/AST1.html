@@ -1,0 +1,360 @@
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+.tree-container{
+    font-family:var(--font-sans);
+    padding:12px 0;
+    background:#ffffff; /* fondo claro */
+    color:#1a1a1a; /* texto oscuro */
+}
+
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;justify-content:center}
+
+.legend-item{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    font-size:11px;
+    color:#444; /* mejor contraste */
+}
+
+.legend-dot{width:10px;height:10px;border-radius:3px}
+
+/* 🔥 FIX PRINCIPAL: líneas del árbol */
+.tree ul{
+    list-style:none;
+    position:relative;
+    padding-left:24px
+}
+
+.tree>ul{padding-left:0}
+
+.tree li{
+    position:relative;
+    padding:2px 0
+}
+
+.tree li::before{
+    content:'';
+    position:absolute;
+    left:-14px;
+    top:0;
+    border-left:1.5px solid #888; /* antes era casi invisible */
+    height:100%
+}
+
+.tree li::after{
+    content:'';
+    position:absolute;
+    left:-14px;
+    top:13px;
+    border-top:1.5px solid #888; /* mismo fix */
+    width:10px
+}
+
+.tree li:last-child::before{height:13px}
+.tree>ul>li::before,.tree>ul>li::after{display:none}
+
+/* nodos */
+.n{
+    display:inline-block;
+    padding:3px 8px;
+    border-radius:5px;
+    font-size:12px;
+    line-height:1.4
+}
+
+/* colores mejor contrastados */
+.r{background:#dcd9ff;color:#2c2675;font-weight:600;font-size:13px}
+.s{background:#d6e9fb;color:#0a3a6b;font-weight:600}
+.i{background:#d4f3e8;color:#06483a;font-weight:600}
+.e{background:#f6e2b8;color:#5a3404;font-weight:600}
+.p{background:#f8dce6;color:#6a1f39;font-weight:600}
+.c{background:#f6d8cc;color:#5c2410}
+
+.l{
+    background:#f2f2f2;
+    color:#555;
+    font-size:11px
+}
+
+.tag{
+    font-size:9px;
+    padding:1px 4px;
+    border-radius:3px;
+    background:rgba(0,0,0,.08);
+    color:#555;
+    margin-left:4px
+}
+
+/* 🌙 modo oscuro */
+@media(prefers-color-scheme:dark){
+
+.tree-container{
+    background:#121212;
+    color:#eaeaea;
+}
+
+.legend-item{color:#bbb}
+
+/* líneas visibles en oscuro */
+.tree li::before{
+    border-left:1.5px solid #aaa;
+}
+.tree li::after{
+    border-top:1.5px solid #aaa;
+}
+
+/* nodos en oscuro */
+.r{background:#26215C;color:#CECBF6}
+.s{background:#042C53;color:#B5D4F4}
+.i{background:#04342C;color:#9FE1CB}
+.e{background:#412402;color:#FAC775}
+.p{background:#4B1528;color:#F4C0D1}
+.c{background:#4A1B0C;color:#F5C4B3}
+
+.l{
+    background:#1e1e1e;
+    color:#aaa
+}
+
+.tag{
+    background:rgba(255,255,255,.1);
+    color:#bbb;
+}
+}
+</style>
+<div class="tree-container">
+<div class="legend">
+<div class="legend-item"><div class="legend-dot" style="background:#EEEDFE"></div>Raíz</div>
+<div class="legend-item"><div class="legend-dot" style="background:#E6F1FB"></div>Elementos visuales</div>
+<div class="legend-item"><div class="legend-dot" style="background:#E1F5EE"></div>Instrucciones</div>
+<div class="legend-item"><div class="legend-dot" style="background:#FAEEDA"></div>Expresiones</div>
+<div class="legend-item"><div class="legend-dot" style="background:#FBEAF0"></div>Soporte</div>
+<div class="legend-item"><div class="legend-dot" style="background:#FAECE7"></div>Colores</div>
+</div>
+<div class="tree">
+<ul>
+<li><span class="n r">NodoPrograma</span><span class="tag">raíz — lista de items</span>
+<ul>
+
+<!-- DECLARACION -->
+<li><span class="n i">NodoDeclaracion</span><span class="tag">number | string | special</span>
+<ul>
+<li><span class="n l">tipo: String</span></li>
+<li><span class="n l">nombre: String</span></li>
+<li><span class="n e">valor: NodoExpresion?</span><span class="tag">null si no se inicializa</span></li>
+</ul>
+</li>
+
+<!-- SECCION -->
+<li><span class="n s">NodoSeccion</span>
+<ul>
+<li><span class="n l">atributos: Map (width, height, pointX, pointY, orientation)</span></li>
+<li><span class="n p">estilos: NodoEstilos?</span></li>
+<li><span class="n s">elementos: List&lt;NodoElemento&gt;</span>
+<ul>
+
+<!-- TEXTO -->
+<li><span class="n s">NodoTexto</span>
+<ul>
+<li><span class="n e">contenido: NodoExpresion</span></li>
+<li><span class="n e">ancho: NodoExpresion</span></li>
+<li><span class="n e">alto: NodoExpresion</span></li>
+<li><span class="n p">estilos: NodoEstilos?</span></li>
+</ul>
+</li>
+
+<!-- ABIERTA -->
+<li><span class="n s">NodoPreguntaAbierta</span>
+<ul>
+<li><span class="n e">label: NodoExpresion</span></li>
+<li><span class="n e">ancho: NodoExpresion</span></li>
+<li><span class="n e">alto: NodoExpresion</span></li>
+<li><span class="n p">estilos: NodoEstilos?</span></li>
+</ul>
+</li>
+
+<!-- DESPLEGABLE -->
+<li><span class="n s">NodoPreguntaDesplegable</span>
+<ul>
+<li><span class="n e">label: NodoExpresion</span></li>
+<li><span class="n e">ancho: NodoExpresion</span></li>
+<li><span class="n e">alto: NodoExpresion</span></li>
+<li><span class="n e">opciones: List&lt;NodoExpresion&gt;</span></li>
+<li><span class="n e">correcto: NodoExpresion?</span></li>
+<li><span class="n e">pokemonDesde: NodoExpresion?</span><span class="tag">PokeAPI</span></li>
+<li><span class="n e">pokemonHasta: NodoExpresion?</span><span class="tag">PokeAPI</span></li>
+<li><span class="n p">estilos: NodoEstilos?</span></li>
+</ul>
+</li>
+
+<!-- SELECCION -->
+<li><span class="n s">NodoPreguntaSeleccion</span>
+<ul>
+<li><span class="n e">label: NodoExpresion</span></li>
+<li><span class="n e">ancho: NodoExpresion</span></li>
+<li><span class="n e">alto: NodoExpresion</span></li>
+<li><span class="n e">opciones: List&lt;NodoExpresion&gt;</span></li>
+<li><span class="n e">correcto: NodoExpresion?</span></li>
+<li><span class="n e">pokemonDesde, pokemonHasta: NodoExpresion?</span><span class="tag">PokeAPI</span></li>
+<li><span class="n p">estilos: NodoEstilos?</span></li>
+</ul>
+</li>
+
+<!-- MULTIPLE -->
+<li><span class="n s">NodoPreguntaMultiple</span>
+<ul>
+<li><span class="n e">ancho: NodoExpresion</span></li>
+<li><span class="n e">alto: NodoExpresion</span></li>
+<li><span class="n e">opciones: List&lt;NodoExpresion&gt;</span></li>
+<li><span class="n e">correctList: List&lt;NodoExpresion&gt;?</span></li>
+<li><span class="n e">pokemonDesde, pokemonHasta: NodoExpresion?</span><span class="tag">PokeAPI</span></li>
+<li><span class="n p">estilos: NodoEstilos?</span></li>
+</ul>
+</li>
+
+<!-- TABLA -->
+<li><span class="n s">NodoTabla</span>
+<ul>
+<li><span class="n l">atributos: Map (width, height, pointX, pointY)</span></li>
+<li><span class="n s">filas: List&lt;List&lt;NodoElemento&gt;&gt;</span><span class="tag">celdas por fila</span></li>
+<li><span class="n p">estilos: NodoEstilos?</span></li>
+</ul>
+</li>
+
+<!-- SECCION ANIDADA -->
+<li><span class="n s">NodoSeccion</span><span class="tag">anidada — misma estructura</span></li>
+
+</ul>
+</li>
+</ul>
+</li>
+
+<!-- ASIGNACION -->
+<li><span class="n i">NodoAsignacion</span>
+<ul>
+<li><span class="n l">nombre: String</span></li>
+<li><span class="n e">valor: NodoExpresion</span></li>
+</ul>
+</li>
+
+<!-- IF -->
+<li><span class="n i">NodoIf</span>
+<ul>
+<li><span class="n e">condicion: NodoExpresion</span></li>
+<li><span class="n i">cuerpo: List&lt;Object&gt;</span><span class="tag">bloque de código</span></li>
+<li><span class="n i">elseParte: NodoElse? | NodoIf?</span><span class="tag">encadenable</span>
+<ul>
+<li><span class="n i">NodoElse</span>
+<ul>
+<li><span class="n i">cuerpo: List&lt;Object&gt;</span></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+
+<!-- WHILE -->
+<li><span class="n i">NodoWhile</span>
+<ul>
+<li><span class="n e">condicion: NodoExpresion</span></li>
+<li><span class="n i">cuerpo: List&lt;Object&gt;</span></li>
+</ul>
+</li>
+
+<!-- DO-WHILE -->
+<li><span class="n i">NodoDoWhile</span>
+<ul>
+<li><span class="n i">cuerpo: List&lt;Object&gt;</span><span class="tag">se ejecuta antes de evaluar</span></li>
+<li><span class="n e">condicion: NodoExpresion</span></li>
+</ul>
+</li>
+
+<!-- FOR CLASICO -->
+<li><span class="n i">NodoFor</span><span class="tag">clásico</span>
+<ul>
+<li><span class="n i">inicializacion: NodoAsignacion</span></li>
+<li><span class="n e">condicion: NodoExpresion</span></li>
+<li><span class="n i">actualizacion: NodoAsignacion</span></li>
+<li><span class="n i">cuerpo: List&lt;Object&gt;</span></li>
+</ul>
+</li>
+
+<!-- FOR RANGO -->
+<li><span class="n i">NodoForRango</span><span class="tag">in n..m</span>
+<ul>
+<li><span class="n l">variable: String</span></li>
+<li><span class="n e">inicio: NodoExpresion</span></li>
+<li><span class="n e">fin: NodoExpresion</span></li>
+<li><span class="n i">cuerpo: List&lt;Object&gt;</span></li>
+</ul>
+</li>
+
+<!-- DRAW -->
+<li><span class="n i">NodoDraw</span>
+<ul>
+<li><span class="n l">nombre: String</span><span class="tag">variable special</span></li>
+<li><span class="n e">argumentos: List&lt;NodoExpresion&gt;</span><span class="tag">reemplazan comodines ?</span></li>
+</ul>
+</li>
+
+<!-- EXPRESIONES -->
+<li><span class="n e">NodoExpresion</span><span class="tag">sealed class</span>
+<ul>
+<li><span class="n e">NodoOperacionBinaria</span>
+<ul>
+<li><span class="n e">izquierda: NodoExpresion</span></li>
+<li><span class="n l">operador: String (+, -, *, /, ^, %, ||, &&, >, <, >=, <=, ==, !!)</span></li>
+<li><span class="n e">derecha: NodoExpresion</span></li>
+</ul>
+</li>
+<li><span class="n e">NodoOperacionUnaria</span>
+<ul>
+<li><span class="n l">operador: String (-, +, ~)</span></li>
+<li><span class="n e">operando: NodoExpresion</span></li>
+</ul>
+</li>
+<li><span class="n l">NodoNumero — valor: Double</span></li>
+<li><span class="n l">NodoCadena — valor: String</span></li>
+<li><span class="n l">NodoIdentificador — nombre: String</span></li>
+<li><span class="n l">NodoComodin — singleton (?)</span></li>
+</ul>
+</li>
+
+<!-- SOPORTE -->
+<li><span class="n p">Nodos de soporte</span>
+<ul>
+<li><span class="n p">NodoEstilos</span>
+<ul>
+<li><span class="n c">color: NodoColor?</span></li>
+<li><span class="n c">backgroundColor: NodoColor?</span></li>
+<li><span class="n l">fontFamily: String? (MONO, SANS_SERIF, CURSIVE)</span></li>
+<li><span class="n e">textSize: NodoExpresion?</span></li>
+<li><span class="n p">borde: NodoBorde?</span></li>
+</ul>
+</li>
+<li><span class="n p">NodoBorde</span>
+<ul>
+<li><span class="n e">grosor: NodoExpresion</span></li>
+<li><span class="n l">tipo: String (LINE, DOTTED, DOUBLE)</span></li>
+<li><span class="n c">color: NodoColor</span></li>
+</ul>
+</li>
+<li><span class="n c">NodoColor</span><span class="tag">sealed class</span>
+<ul>
+<li><span class="n c">NodoColorHex — valor: String (#FFFFFF)</span></li>
+<li><span class="n c">NodoColorHSL — valor: String (&lt;h,s,l&gt;)</span></li>
+<li><span class="n c">NodoColorRGB — r, g, b: NodoExpresion</span></li>
+<li><span class="n c">NodoColorNombre — nombre: String (RED, BLUE, GREEN...)</span></li>
+</ul>
+</li>
+</ul>
+</li>
+
+</ul>
+</li>
+</ul>
+</div>
+</div>
